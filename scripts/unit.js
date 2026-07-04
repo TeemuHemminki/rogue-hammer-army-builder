@@ -162,6 +162,8 @@ export default class Unit extends EventTarget{
     }
 
     //TODO: This is kind of horrible implementation. Should rewrite it to be more cleaner and use selection component instead of prompt or confirm
+    //TODO: Units get too many upgrades and wrong upgrades at that.
+    //TODO: All upgrades are not showing correctly
     addRankUpgrade(){
         let roll = Math.floor(Math.random()*6 + 1);
         let upgrade = rankRolls[roll];

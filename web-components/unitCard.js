@@ -32,23 +32,27 @@ class UnitCard extends HTMLElement {
     getStat({ stat, substat, index, isModifier, isMovement, isCohesion }) {
         let base;
         let bonus;
+        let experienceUpgrade;
 
         if (Array.isArray(this._unit.stats[stat])) {
             base = !substat ? this._unit.stats[stat]?.[index] ?? 0 : this._unit.stats[stat]?.[index]?.[substat] ?? 0;
-            bonus = !substat ? this._unit.upgrade?.statBonuses[stat] ?? 0 : this._unit.upgrade?.statBonuses?.[stat]?.[substat] ?? 0;
         } else {
             base = !substat ? this._unit.stats[stat] ?? 0 : this._unit.stats[stat]?.[substat] ?? 0;
-            bonus = !substat ? this._unit.upgrade?.statBonuses[stat] ?? 0 : this._unit.upgrade?.statBonuses?.[stat]?.[substat] ?? 0;
+        }
+        bonus = !substat ? this._unit.upgrade?.statBonuses[stat] ?? 0 : this._unit.upgrade?.statBonuses?.[stat]?.[substat] ?? 0;
+        experienceUpgrade = 0;
+        for (let eu of this._unit.experienceUpgrades) {
+            experienceUpgrade += !substat ? eu.statBonuses[stat] ?? 0 : eu.statBonuses?.[stat]?.[substat] ?? 0;
         }
 
         if (isMovement) {
-            return bonus ? (base + bonus) + '" (' + base + '")' : base + '"';
+            return bonus || experienceUpgrade ? (base + bonus + experienceUpgrade) + '" (' + base + '")' : base + '"';
         } else if (isModifier) {
             let baseValue = base ? base >= 0 ? '+' + base : base : '-';
-            let modifiedValue = bonus ? base + bonus >= 0 ? '+' + (base + bonus) : base + bonus : null;
+            let modifiedValue = bonus || experienceUpgrade ? base + bonus + experienceUpgrade >= 0 ? '+' + (base + bonus + experienceUpgrade) : base + bonus + experienceUpgrade : null;
             return modifiedValue ? modifiedValue + ' (' + baseValue + ')' : baseValue;
-        } else if (isCohesion){
-            return bonus || this._unit.rank.totalCohesionBonus > 0 ? (base + bonus + this._unit.rank.totalCohesionBonus) + " (" + base + ")" : base;            
+        } else if (isCohesion) {
+            return bonus || this._unit.rank.totalCohesionBonus > 0 ? (base + bonus + this._unit.rank.totalCohesionBonus) + " (" + base + ")" : base;
         }
         return bonus ? (base + bonus) + " (" + base + ")" : base;
     }
@@ -144,32 +148,32 @@ class UnitCard extends HTMLElement {
             }
         }
 
-        if(this._unit.experienceUpgrades.length > 0){
+        if (this._unit.experienceUpgrades.length > 0) {
             const experienceUpgradesContainer = this.shadow.querySelector('#experienceUpgrades');
-            for (const upgrade of this._unit.experienceUpgrades){
+            for (const upgrade of this._unit.experienceUpgrades) {
                 let upgradeItem = document.createElement('li');
                 upgradeItem.innerText = upgrade.name + ": " + upgrade.description;
                 experienceUpgradesContainer.append(upgradeItem);
             }
         }
 
-        if (this._unit.campaignUnit){
+        if (this._unit.campaignUnit) {
             this.shadow.querySelector('#campaignUnit').checked = this._unit.campaignUnit;
             this.shadow.querySelector('#inactive').checked = this._unit.inactive;
             this.shadow.querySelector('#skipBattle').checked = this._unit.skipNextBattle;
         }
 
-        if (this._unit.stats.psionicLists != null){
+        if (this._unit.stats.psionicLists != null) {
             let selectPsionicPowerList = this.shadow.querySelector('#selectPsionicPowerList');
-            for(let i = 0; i < this._unit.stats.psionicLists.length; i++){
+            for (let i = 0; i < this._unit.stats.psionicLists.length; i++) {
                 let powerList = this._unit.stats.psionicLists[i];
                 let listOption = document.createElement('option');
                 listOption.innerText = powerList.name;
                 listOption.value = i;
-                if(i === this._unit.psionicPowerListIndex){
+                if (i === this._unit.psionicPowerListIndex) {
                     listOption.selected = true;
                 }
-                selectPsionicPowerList.append(listOption);                
+                selectPsionicPowerList.append(listOption);
             }
         }
 
@@ -185,7 +189,7 @@ class UnitCard extends HTMLElement {
             this._unit.name = prompt("", this._unit.name ? this._unit.name : this._unit.stats.name);
         }
 
-        if(event.target.matches('#experienceButton')){
+        if (event.target.matches('#experienceButton')) {
             this._unit.addExperiencePoints(1);
         }
 
@@ -217,14 +221,14 @@ class UnitCard extends HTMLElement {
         }
     }
 
-    onChange(event){
-        if (event.target.matches('#selectPsionicPowerList')){
+    onChange(event) {
+        if (event.target.matches('#selectPsionicPowerList')) {
             this._unit.psionicPowerListIndex = Number(event.target.value);
         }
 
-        if (event.target.matches('#campaignUnit')){
-            if(this._unit.campaignUnit && !event.target.checked){
-                if(!confirm("Are you sure you want to disable campaign from this unit? It will lose all experience and upgrades.")){
+        if (event.target.matches('#campaignUnit')) {
+            if (this._unit.campaignUnit && !event.target.checked) {
+                if (!confirm("Are you sure you want to disable campaign from this unit? It will lose all experience and upgrades.")) {
                     event.target.checked = true;
                     return;
                 };
@@ -232,11 +236,11 @@ class UnitCard extends HTMLElement {
             this._unit.campaignUnit = event.target.checked;
         }
 
-        if(event.target.matches('#inactive')){
+        if (event.target.matches('#inactive')) {
             this._unit.inactive = event.target.checked;
         }
 
-        if(event.target.matches('#skipBattle')){
+        if (event.target.matches('#skipBattle')) {
             this._unit.skipNextBattle = event.target.checked;
         }
 
