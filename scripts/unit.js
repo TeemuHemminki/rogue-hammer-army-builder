@@ -174,7 +174,7 @@ export default class Unit extends EventTarget{
             possibleChoices[0] = this._stats.firepower?.some(fp => fp.firefight !== null) ? 1 : 0;
             possibleChoices[1] = this._stats.firepower?.some(fp => fp.battle !== null) ? 1 : 0;
             possibleChoices[2] = this._stats.firepower?.some(fp => fp.long !== null) ? 1 : 0;
-            let promptText = `Select to which range band firepower increase is added. ${possibleChoices[0] ? '0: firefight ' : ''}${possibleChoices[1] ? '1: battle ':''}${possibleChoices[2] ? '2: long' : ''}`;
+            let promptText = `Firepower upgrade! Select to which range band firepower increase is added. ${possibleChoices[0] ? '0: firefight ' : ''}${possibleChoices[1] ? '1: battle ':''}${possibleChoices[2] ? '2: long' : ''}`;
             let answer = -1;
             while((answer != 0 && answer != 1 && answer != 2) || possibleChoices[answer] != 1){
                 answer = Number(prompt(promptText));
@@ -183,10 +183,8 @@ export default class Unit extends EventTarget{
         } else if(upgrade.statBonuses.antiTank){
             let shootBonusPossible = this._stats.firepower?.some(fp => fp.antiTank !== null) ? true : false;
             let assaultBonusPossible = this._stats.assault?.antiTank !== null;
-            console.log(shootBonusPossible);
-            console.log(assaultBonusPossible);
             if(shootBonusPossible && assaultBonusPossible){
-                let choice = confirm("Ranged (confirm) or melee (cancel)?");
+                let choice = confirm("Anti-Tank upgrade! Add to ranged (confirm) or melee (cancel)?");
                 if(choice){
                     return {name: upgrade.name, statBonuses: { firepower: {antiTank: 1}}, description: 'Increase ranged Anti Tank by +1'}
                 } else {
@@ -218,7 +216,7 @@ const ranks = {
 }
 
 const rankUpgrades = {
-    speed: {roll: 1, name: "Speed", statBonuses: {speed: 2}, description: "Increase Speed by +2"},
+    speed: {roll: 1, name: "Speed", statBonuses: {move: 2}, description: "Increase Move by +2"},
     firepower: {roll: '2-3', name: "Firepower", statBonuses: { firepower: '?'}, description: "Increase Firepower at one range band of choice by +1."},
     antiTank: {roll: 4, name: "Anti Tank", statBonuses: { antiTank: '?'}, description: "Increase choice of ranged or assault Anti Tank by +1 (if not currently NA)"},
     assault: {roll: '5-6', name: "Assault", statBonuses: { assault: {modifier: 1}}, description: "Increase Assault bonus by +1"}
