@@ -1,6 +1,6 @@
 'use strict'
 
-import { VEHICLE} from '/scripts/constants.js';
+import { VEHICLE } from '/scripts/constants.js';
 
 class UnitCard extends HTMLElement {
     constructor() {
@@ -37,6 +37,7 @@ class UnitCard extends HTMLElement {
         let base;
         let bonus;
         let experienceUpgrade;
+        let campaignRewardBonus;
 
         if (Array.isArray(this._unit.stats[stat])) {
             base = !substat ? this._unit.stats[stat]?.[index] ?? null : this._unit.stats[stat]?.[index]?.[substat] ?? null;
@@ -44,19 +45,28 @@ class UnitCard extends HTMLElement {
             base = !substat ? this._unit.stats[stat] ?? null : this._unit.stats[stat]?.[substat] ?? null;
         }
         bonus = !substat ? this._unit.upgrade?.statBonuses[stat] ?? null : this._unit.upgrade?.statBonuses?.[stat]?.[substat] ?? null;
+
         experienceUpgrade = 0;
+        campaignRewardBonus = 0;
         for (let eu of this._unit.experienceUpgrades) {
             experienceUpgrade += !substat ? eu.statBonuses[stat] ?? null : eu.statBonuses?.[stat]?.[substat] ?? null;
         }
+        for (let cr of this._unit.campaignRewards) {
+            if(!cr.activated){
+                continue;
+            }
+            let reward = this._unit.getCampaignReward(cr);
+            campaignRewardBonus += !substat ? reward.statBonuses?.[stat] ?? null : reward.statbonuses?.[stat]?.[substat] ?? null;
+        }
 
         if (isMovement) {
-            return bonus || experienceUpgrade ? (base + bonus + experienceUpgrade) + '" (' + base + '")' : base + '"';
+            return bonus || experienceUpgrade || campaignRewardBonus ? (base + bonus + experienceUpgrade + campaignRewardBonus) + '" (' + base + '")' : base + '"';
         } else if (isModifier) {
             let baseValue = base != null ? base >= 0 ? '+' + base : base : '-';
-            let modifiedValue = bonus || experienceUpgrade ? base + bonus + experienceUpgrade >= 0 ? '+' + (base + bonus + experienceUpgrade) : base + bonus + experienceUpgrade : null;
+            let modifiedValue = bonus || experienceUpgrade || campaignRewardBonus ? base + bonus + experienceUpgrade + campaignRewardBonus >= 0 ? '+' + (base + bonus + experienceUpgrade + campaignRewardBonus) : base + bonus + experienceUpgrade + campaignRewardBonus : null;
             return modifiedValue ? modifiedValue + ' (' + baseValue + ')' : baseValue;
         } else if (isCohesion) {
-            return bonus || this._unit.rank.totalCohesionBonus > 0 ? (base + bonus + this._unit.rank.totalCohesionBonus) + " (" + base + ")" : base;
+            return bonus || this._unit.rank.totalCohesionBonus > 0 || campaignRewardBonus ? (base + bonus + this._unit.rank.totalCohesionBonus + campaignRewardBonus) + " (" + base + ")" : base;
         }
         return bonus ? (base + bonus) + " (" + base + ")" : base;
     }
@@ -114,11 +124,12 @@ class UnitCard extends HTMLElement {
                 ? '<p>Special Rules:<ul id="specialRules"></ul></p>'
                 : ''
             }
-            ${this._unit.experienceUpgrades.length > 0 ? '<p>Experience upgrades: <ul id="experienceUpgrades"></ul></p>' : ''}
             ${this._unit.stats.psionicLevel != null ? '<p>Psionic Level: ' + this._unit.stats.psionicLevel + '. Powers list: <select id="selectPsionicPowerList"></select></p>' : ''}
                 ${this._unit.upgrade != null
                 ? '<p id="upgradeContainer"></p>' : ''
             }
+                ${this._unit.experienceUpgrades.length > 0 ? '<p>Experience upgrades: <ul id="experienceUpgrades"></ul></p>' : ''}
+                ${this._unit.campaignRewards.length > 0 ? '<p>Campaign rewards: <ul id="campaignRewards"></ul></p>' : ''}
                 <button id="upgradeButton">Select upgrade</button>
             </div>
         `;
@@ -158,6 +169,32 @@ class UnitCard extends HTMLElement {
                 let upgradeItem = document.createElement('li');
                 upgradeItem.innerText = upgrade.name + ": " + upgrade.description;
                 experienceUpgradesContainer.append(upgradeItem);
+            }
+        }
+
+        if (this._unit.campaignRewards.length > 0) {
+            const campaignRewardsContainer = this.shadow.querySelector('#campaignRewards');
+            for (const reward of this._unit.campaignRewards) {
+                let rewardItem = document.createElement('li');
+                let rewardData = this._unit.getCampaignReward(reward);
+                rewardItem.innerText = `${rewardData.name}: ${rewardData.description}`;
+                campaignRewardsContainer.append(rewardItem);
+
+                if (rewardData.activateable) {
+                    rewardItem.innerText += " Activated:";
+                    let activateCampaignRewardCheckbox = document.createElement('input');
+                    activateCampaignRewardCheckbox.type = 'checkbox';
+                    activateCampaignRewardCheckbox.classList.add("activateCampaignReward");
+                    activateCampaignRewardCheckbox.checked = reward.activated;
+                    activateCampaignRewardCheckbox.reward = reward;
+                    rewardItem.append(activateCampaignRewardCheckbox);
+                }
+
+                let deleteCampaignRewardButton = document.createElement('button');
+                deleteCampaignRewardButton.innerText = "🗑️";
+                deleteCampaignRewardButton.classList.add("deleteCampaignReward");
+                deleteCampaignRewardButton.reward = reward;
+                rewardItem.append(deleteCampaignRewardButton);
             }
         }
 
@@ -223,6 +260,12 @@ class UnitCard extends HTMLElement {
                 })
             )
         }
+
+        if (event.target.matches('.deleteCampaignReward')) {
+            if (confirm("Delete this campaign reward?")) {
+                this._unit.removeCampaignReward(event.target.reward);
+            }
+        }
     }
 
     onChange(event) {
@@ -249,6 +292,9 @@ class UnitCard extends HTMLElement {
             this._unit.skipNextBattle = event.target.checked;
         }
 
+        if (event.target.matches('.activateCampaignReward')) {
+            this._unit.toggleCampaignRewardActivated(event.target.reward);
+        }
     }
 }
 

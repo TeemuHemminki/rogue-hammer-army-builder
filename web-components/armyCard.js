@@ -71,6 +71,9 @@ export default class ArmyCard extends HTMLElement {
         if (event.target.matches('#psionicsSummary')    ){
             this._army.psionicDetails = !event.target.parentNode.open;
         }
+        if(event.target.matches('#rollCampaignRewardButton')){
+            this._army.rollAndAssignCampaignReward();
+        }
     }
 
     selectUpgrade(event) {
@@ -115,6 +118,7 @@ export default class ArmyCard extends HTMLElement {
                 "<details id='psionics'><summary id='psionicsSummary'>Psionic power lists</summary></details>" : ""
             }
             <p id="armySpecialRules"></p>
+            <button id="rollCampaignRewardButton">Roll campaign reward</button>
             <div id="units"></div>
         `;
 

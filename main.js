@@ -4,7 +4,7 @@ import Army from './scripts/army.js';
 import './web-components/armyCard.js';
 import './web-components/mainView.js';
 
-import { SAVED_ARMIES, LAST_OPENED_ARMIES, SQUAD, INDIVIDUAL, VEHICLE} from '/scripts/constants.js';
+import { SAVED_ARMIES, LAST_OPENED_ARMIES, SQUAD, INDIVIDUAL, VEHICLE} from './scripts/constants.js';
 
 if (!localStorage.getItem(SAVED_ARMIES)) {
     localStorage.setItem(SAVED_ARMIES, JSON.stringify({}))

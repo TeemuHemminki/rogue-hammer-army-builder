@@ -1,9 +1,9 @@
 'use strict'
 
-import {RANKS as ranks, RANK_ROLLS as rankRolls } from './constants.js';
+import {RANKS as ranks, RANK_ROLLS as rankRolls, CAMPAIGN_REWARDS } from './constants.js';
 
 export default class Unit extends EventTarget{
-    constructor({identifier, stats, nickname, upgrade, campaignUnit, inactive, skipNextBattle, experience, rank, experienceUpgrades, psionicPowerListIndex}){
+    constructor({identifier, stats, nickname, upgrade, campaignUnit, inactive, skipNextBattle, experience, rank, experienceUpgrades, campaignRewards, psionicPowerListIndex}){
         super();
         this._identifier = identifier; 
         this._stats = stats;
@@ -15,6 +15,7 @@ export default class Unit extends EventTarget{
         this._experience = experience || 0;
         this._rank = rank || ranks[0];
         this._experienceUpgrades = experienceUpgrades || [];
+        this._campaignRewards = campaignRewards || [];
         this._psionicPowerListIndex = psionicPowerListIndex || null;
     }
 
@@ -28,6 +29,7 @@ export default class Unit extends EventTarget{
             skipNextBattle: this._skipNextBattle,
             experience: this._experience,
             experienceUpgrades: this._experienceUpgrades,
+            campaignRewards: this._campaignRewards,
             psionicPowerListIndex: this._psionicPowerListIndex
         };
     }
@@ -41,6 +43,7 @@ export default class Unit extends EventTarget{
         this._experience = unitSave.experience;
         this._rank = this.checkRank();
         this._experienceUpgrades = unitSave.experienceUpgrades;
+        this._campaignRewards = unitSave.campaignRewards;
         this._psionicPowerListIndex = unitSave.psionicPowerListIndex;
     }
 
@@ -203,6 +206,35 @@ export default class Unit extends EventTarget{
         }
         return upgrade;
     }
+
+    get campaignRewards(){
+        return this._campaignRewards;
+    }
+
+    getCampaignReward(reward){
+        return CAMPAIGN_REWARDS[reward.key];
+    }
+
+    addCampaignReward({key, reward}){
+        if(reward.instantExperience){
+            this.addExperiencePoints(reward.instantExperience);
+            alert("Reward assigned instantly.");
+        } else {
+            this._campaignRewards.push({key: key, activated: false});
+            this.dispatchEvent(new Event("change"));
+        }
+    }
+
+    removeCampaignReward(reward){
+        this._campaignRewards.splice(this._campaignRewards.indexOf(reward), 1);
+        this.dispatchEvent(new Event("change"));
+    }
+
+    toggleCampaignRewardActivated(reward){
+        reward.activated = !reward.activated;
+        this.dispatchEvent(new Event("change"));
+    }
+
 
 }
 

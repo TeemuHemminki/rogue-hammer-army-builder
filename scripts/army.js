@@ -2,6 +2,7 @@
 
 import Unit from './unit.js';
 import Upgrade from './upgrade.js';
+import { CAMPAIGN_REWARDS as campaignRewards } from './constants.js';
 
 export default class Army extends EventTarget {
     constructor({ armyListIdentifier, armyList, saveData }) {
@@ -141,6 +142,29 @@ export default class Army extends EventTarget {
     saveChangedUnit() {
         this.dispatchEvent(new Event("change"));
         this.save();
+    }
+
+    //TODO: Remove need for alert and prompt, create information web component instead
+    rollAndAssignCampaignReward(){
+        let rewards = Object.entries(campaignRewards);
+        let roll = Math.floor(Math.random()*rewards.length);
+        let reward = rewards[roll];
+
+        let eligibleUnits = this._units.filter(unit => unit.campaignUnit);
+        if(eligibleUnits.length <= 0){
+            alert("No campaign units available, can't assign reward. And it would have been " + reward[1].name + ", think of what you missed :(");
+            return;
+        }
+        let choice = -1;
+        let promptText = `Reward is ${reward[1].name}: ${reward[1].description}. Input index of unit to receive the reward.\n`;
+        for(let i = 0; i < eligibleUnits.length; i++){
+            promptText += i + ": " + eligibleUnits[i].name + ". ";
+        }
+        while(!eligibleUnits[choice]){
+            choice = prompt(promptText);
+        }
+        let chosenUnit = eligibleUnits[choice];
+        this._units[this._units.indexOf(chosenUnit)].addCampaignReward({key: reward[0], reward: reward[1]});
     }
 
     get units() {
