@@ -1,3 +1,5 @@
+import { VEHICLE} from '/scripts/constants.js';
+
 class UnitCard extends HTMLElement {
     constructor() {
         super();
@@ -35,20 +37,20 @@ class UnitCard extends HTMLElement {
         let experienceUpgrade;
 
         if (Array.isArray(this._unit.stats[stat])) {
-            base = !substat ? this._unit.stats[stat]?.[index] ?? 0 : this._unit.stats[stat]?.[index]?.[substat] ?? 0;
+            base = !substat ? this._unit.stats[stat]?.[index] ?? null : this._unit.stats[stat]?.[index]?.[substat] ?? null;
         } else {
-            base = !substat ? this._unit.stats[stat] ?? 0 : this._unit.stats[stat]?.[substat] ?? 0;
+            base = !substat ? this._unit.stats[stat] ?? null : this._unit.stats[stat]?.[substat] ?? null;
         }
-        bonus = !substat ? this._unit.upgrade?.statBonuses[stat] ?? 0 : this._unit.upgrade?.statBonuses?.[stat]?.[substat] ?? 0;
+        bonus = !substat ? this._unit.upgrade?.statBonuses[stat] ?? null : this._unit.upgrade?.statBonuses?.[stat]?.[substat] ?? null;
         experienceUpgrade = 0;
         for (let eu of this._unit.experienceUpgrades) {
-            experienceUpgrade += !substat ? eu.statBonuses[stat] ?? 0 : eu.statBonuses?.[stat]?.[substat] ?? 0;
+            experienceUpgrade += !substat ? eu.statBonuses[stat] ?? null : eu.statBonuses?.[stat]?.[substat] ?? null;
         }
 
         if (isMovement) {
             return bonus || experienceUpgrade ? (base + bonus + experienceUpgrade) + '" (' + base + '")' : base + '"';
         } else if (isModifier) {
-            let baseValue = base ? base >= 0 ? '+' + base : base : '-';
+            let baseValue = base != null ? base >= 0 ? '+' + base : base : '-';
             let modifiedValue = bonus || experienceUpgrade ? base + bonus + experienceUpgrade >= 0 ? '+' + (base + bonus + experienceUpgrade) : base + bonus + experienceUpgrade : null;
             return modifiedValue ? modifiedValue + ' (' + baseValue + ')' : baseValue;
         } else if (isCohesion) {
@@ -84,7 +86,7 @@ class UnitCard extends HTMLElement {
             <div id="card">
                 <button id="deleteUnitButton">🗑️</button>
                 <h3>${this._unit.name}<button id="editNameButton">📝</button></h3>
-                <p>Campaign Unit: <input type="checkbox" id="campaignUnit"}/></p>
+                ${this._unit.stats.keyword != VEHICLE ? '<p>Campaign Unit: <input type="checkbox" id="campaignUnit"}/></p>' : ''}
                 ${this._unit.campaignUnit ? '<p>Inactive: <input type="checkbox" id="inactive"/> Skip next battle: <input type="checkbox" id="skipBattle"/>' : ''}
                 ${this._unit.campaignUnit ? '<p><button id="experienceButton">Add experience point</button><ul id="rankUpgrades"></ul> Experience points: ' + this._unit.experience + '. Rank: ' + this._unit.rank.rank + '</p>' : ''}
                 <p>Move: ${this.getStat({ stat: "move", isMovement: true })}</p>
@@ -229,6 +231,7 @@ class UnitCard extends HTMLElement {
         if (event.target.matches('#campaignUnit')) {
             if (this._unit.campaignUnit && !event.target.checked) {
                 if (!confirm("Are you sure you want to disable campaign from this unit? It will lose all experience and upgrades.")) {
+                    //If confirm result was cancel, then we do not remove campaign status from unit.
                     event.target.checked = true;
                     return;
                 };

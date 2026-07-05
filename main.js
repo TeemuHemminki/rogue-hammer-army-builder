@@ -2,8 +2,7 @@ import Army from './scripts/army.js';
 import './web-components/armyCard.js';
 import './web-components/mainView.js';
 
-const SAVED_ARMIES = 'savedArmies';
-const LAST_OPENED_ARMIES = 'openedArmies';
+import { SAVED_ARMIES, LAST_OPENED_ARMIES, SQUAD, INDIVIDUAL, VEHICLE} from '/scripts/constants.js';
 
 if (!localStorage.getItem(SAVED_ARMIES)) {
     localStorage.setItem(SAVED_ARMIES, JSON.stringify({}))
@@ -11,16 +10,6 @@ if (!localStorage.getItem(SAVED_ARMIES)) {
 if (!localStorage.getItem(LAST_OPENED_ARMIES)) {
     localStorage.setItem(LAST_OPENED_ARMIES, JSON.stringify({}))
 }
-
-//Dunno if these are useful anymore, initial data representation for different attributes
-const firepower = {"firefight": null, "battle": null, "long": null, "antiTank": null}
-const assault = {"modifier": null, "antiTank": null};
-const armour = {"front": null, "side": null, "rear": null};
-
-//Keywords for linking what upgrades are available to what unit types
-const SQUAD = 'squad';
-const INDIVIDUAL = 'individual;'
-const VEHICLE = 'vehicle';
 
 //Common special rules go into this object
 let commonSpecialRules = {

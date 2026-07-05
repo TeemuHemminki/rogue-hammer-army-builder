@@ -88,6 +88,7 @@ export default class Unit extends EventTarget{
             this._inactive = false;
             this._skipNextBattle = false;
             this._experience = 0;
+            this._rank = ranks[0];
             this._experienceUpgrades = [];
         }
         this._campaignUnit = value;
@@ -135,7 +136,6 @@ export default class Unit extends EventTarget{
     }
 
     addExperiencePoints(points){
-        console.log(points);
         this._experience += points;
         this._rank = this.checkRank();
         this.checkUpgrades();
@@ -155,15 +155,13 @@ export default class Unit extends EventTarget{
 
     checkUpgrades(){
         if(this._experienceUpgrades.length < this._rank.totalUpgrades){
-            for(let i = this._experienceUpgrades.length -1; i < this._rank.totalUpgrades; i++){
+            for(let i = this._experienceUpgrades.length; i < this._rank.totalUpgrades; i++){
                 this._experienceUpgrades.push(this.addRankUpgrade());
             }
         }
     }
 
     //TODO: This is kind of horrible implementation. Should rewrite it to be more cleaner and use selection component instead of prompt or confirm
-    //TODO: Units get too many upgrades and wrong upgrades at that.
-    //TODO: All upgrades are not showing correctly
     addRankUpgrade(){
         let roll = Math.floor(Math.random()*6 + 1);
         let upgrade = rankRolls[roll];
@@ -178,8 +176,8 @@ export default class Unit extends EventTarget{
             possibleChoices[2] = this._stats.firepower?.some(fp => fp.long !== null) ? 1 : 0;
             let promptText = `Select to which range band firepower increase is added. ${possibleChoices[0] ? '0: firefight ' : ''}${possibleChoices[1] ? '1: battle ':''}${possibleChoices[2] ? '2: long' : ''}`;
             let answer = -1;
-            while(answer != 0 && answer != 1 && answer != 2 && !possibleChoices[answer]){
-                answer = prompt(promptText);
+            while((answer != 0 && answer != 1 && answer != 2) || possibleChoices[answer] != 1){
+                answer = Number(prompt(promptText));
             }
             return {name: upgrade.name, statBonuses: {firepower: {firefight: answer === 0 ? 1 : 0, battle: answer === 1 ? 1 : 0, long: answer === 2 ? 1 : 0}}, description: `Increase Firepower at ${answer === 0 ? 'firefight' : answer === 1 ? 'battle' : 'long'} range band by +1`};
         } else if(upgrade.statBonuses.antiTank){
