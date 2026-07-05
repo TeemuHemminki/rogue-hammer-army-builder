@@ -1,3 +1,5 @@
+'use strict'
+
 import './armyModal.js';
 import './armyCard.js';
 

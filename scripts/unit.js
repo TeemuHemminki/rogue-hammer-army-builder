@@ -1,5 +1,7 @@
 'use strict'
 
+import {RANKS as ranks, RANK_ROLLS as rankRolls } from './constants.js';
+
 export default class Unit extends EventTarget{
     constructor({identifier, stats, nickname, upgrade, campaignUnit, inactive, skipNextBattle, experience, rank, experienceUpgrades, psionicPowerListIndex}){
         super();
@@ -204,38 +206,3 @@ export default class Unit extends EventTarget{
 
 }
 
-const ranks = {
-    0: {rank: 0, experience: 0, totalUpgrades: 0, totalCohesionBonus: 0},
-    1: {rank: 1, experience: 3, totalUpgrades: 0, totalCohesionBonus: 1},
-    2: {rank: 2, experience: 6, totalUpgrades: 1, totalCohesionBonus: 1},
-    3: {rank: 3, experience: 10, totalUpgrades: 1, totalCohesionBonus: 2},
-    4: {rank: 4, experience: 15, totalUpgrades: 2, totalCohesionBonus: 2},
-    5: {rank: 5, experience: 20, totalUpgrades: 2, totalCohesionBonus: 3},
-    6: {rank: 6, experience: 25, totalUpgrades: 2, totalCohesionBonus: 4},
-    7: {rank: 7, experience: 30, totalUpgrades: 3, totalCohesionBonus: 4}
-}
-
-const rankUpgrades = {
-    speed: {roll: 1, name: "Speed", statBonuses: {move: 2}, description: "Increase Move by +2"},
-    firepower: {roll: '2-3', name: "Firepower", statBonuses: { firepower: '?'}, description: "Increase Firepower at one range band of choice by +1."},
-    antiTank: {roll: 4, name: "Anti Tank", statBonuses: { antiTank: '?'}, description: "Increase choice of ranged or assault Anti Tank by +1 (if not currently NA)"},
-    assault: {roll: '5-6', name: "Assault", statBonuses: { assault: {modifier: 1}}, description: "Increase Assault bonus by +1"}
-}
-
-const rankRolls = {
-    1: rankUpgrades.speed,
-    2: rankUpgrades.firepower,
-    3: rankUpgrades.firepower,
-    4: rankUpgrades.antiTank,
-    5: rankUpgrades.assault,
-    6: rankUpgrades.assault
-}
-
-const campaignRewards = {
-    fightingFury: {roll: 1, name: "Fighting Fury", description: "The unit can make two attacks in one activation, adding +1 to both rolls."},
-    takeInitiative: {roll: 2, name: "Take initiative", description: "The unit may take a Full Activation without counting against your activation count for the turn."},
-    battleExperience: {roll: 3, name: "Battle Experience", description: "Unit receives +3 XP"},
-    willPower: {roll: 4, name: "Willpower", description: "When destroyed, restore Cohesion to 1D6 points and remain in place."},
-    battleFortune: {roll: 5, name: "Battle Fortune", description: "Unit may ignore one post battle Kill Check without rolling."},
-    determination: {roll: 6, name: "Determination", statBonuses: { cohesion: 2 }, description: "Increase Cohesion by +2 for one battle."}
-}

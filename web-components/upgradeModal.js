@@ -1,3 +1,5 @@
+'use strict'
+
 import './upgradeCard.js';
 
 export default class UpgradeModal extends HTMLElement {

@@ -1,3 +1,5 @@
+'use strict'
+
 import './unitCard.js';
 import './upgradeModal.js';
 import './selectUnitModal.js';

@@ -1,3 +1,5 @@
+'use strict'
+
 import { VEHICLE} from '/scripts/constants.js';
 
 class UnitCard extends HTMLElement {

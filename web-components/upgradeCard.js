@@ -1,3 +1,5 @@
+'use strict'
+
 export default class UpgradeCard extends HTMLElement {
     constructor(){
         super();

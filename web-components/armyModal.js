@@ -1,3 +1,5 @@
+'use strict'
+
 export default class ArmyModal extends HTMLElement {
     constructor() {
         super();

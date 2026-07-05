@@ -1,3 +1,5 @@
+'use strict'
+
 import Unit from './unit.js';
 import Upgrade from './upgrade.js';
 

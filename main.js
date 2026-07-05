@@ -1,3 +1,5 @@
+'use strict'
+
 import Army from './scripts/army.js';
 import './web-components/armyCard.js';
 import './web-components/mainView.js';
