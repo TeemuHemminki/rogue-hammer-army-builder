@@ -68,7 +68,7 @@ export const TRAITS = {
     highExplosive: { name: "High Explosive", description: "When shooting at infantry, any hit roll of doubles inflicts 1 point of damage even if the attack misses and +1 damage if the attack hits." },
     hover: { name: "Hover", description: "The vehicle follows the terrain rules for Hover vehicles." },
     indirectFire: { name: "Indirect Fire", description: "The unit can fire using the rules for Indirect Fire." },
-    individual: {name:"Individual", description: "Follows the rules for individual models."},
+    individual: { name: "Individual", description: "Follows the rules for individual models." },
     infiltration: { name: "Infiltration", description: "May deploy in any terrain feature on the friendly half of the table." },
     jump: { name: "Jump", description: "The unit moves using the rules for Jump units." },
     leadership: { name: "Leadership", description: "Squads within 6” roll 2D6 in Close Combat and pick the highest die. Squads Regrouping within 6” regain an additional point of Cohesion. This benefit only applies to units from the same army list, except for Imperial troops." },
@@ -89,7 +89,7 @@ export const TRAITS = {
     specialist: { name: "Specialist", description: "The unit cannot be given Squad Upgrades." },
     terror: { name: "Terror", description: "+1 to Assault rolls against Squads. Does not apply if the Squad has one of Simple Minded, Robot or Mechanical." },
     tracked: { name: "Tracked", description: "The vehicle follows the terrain rules for Tracked vehicles." },
-    wheeled: { name: "Wheeled", description: "The vehicle follows the terrain rules for Wheeled vehicles."},
+    wheeled: { name: "Wheeled", description: "The vehicle follows the terrain rules for Wheeled vehicles." },
     transportCapacity: { name: "Transport Capacity (x)", description: "The unit is a transport. The number in parenthesis is the number of unit points that can be loaded." }, //TODO: handling transport capacity parenthesis value in army building
     unique: { name: "Unique", description: "You can include only one of each Unique unit in an army." }, //TODO: Handling unique in army building
     walker: { name: "Walker", description: "The vehicle follows the terrain rules for Walkers." }
@@ -122,11 +122,29 @@ export const GENERIC_UPGRADES = {
 }
 
 const ARMY_SPECIAL_RULES = {
-    holdTheGround: { name: "Hold the ground", description: "At the end of your turn, select one Legion unit that is in a building or fortification or which is holding a Scenario Objective. The selected unit recovers 1 lost point of Cohesion" },
-    imperials: { name: "Imperials", description: "All units from this army list are considered Imperial units." }
+    crawlerHorde: {
+        acidSpray: { name: "Acid Spray", description: "Any unit drawing or losing an assault against Crawlers loses 1 additional point of Cohesion." },
+        alienAnatomy: { name: "Alien Anatomy", description: "Crawlers ignore terrain hazards. In special scenarios, no poison, gas or virus can affect them." },
+        inhuman: { name: "Inhuman", description: "Crawlers can only use Crawler unit upgrades, never the General tables." },
+    },
+    imperialLegion: {
+        holdTheGround: { name: "Hold the ground", description: "At the end of your turn, select one Legion unit that is in a building or fortification or which is holding a Scenario Objective. The selected unit recovers 1 lost point of Cohesion" },
+        imperials: { name: "Imperials", description: "All units from this army list are considered Imperial units." },
+    }
 }
 
 const PSIONIC_POWERS_LIST = {
+    crawlerHorde: {
+        name: "Crawler Horde Psionic Abilities",
+        powers: {
+            hordeRush: { roll: 1, name: "Horde rush", description: "Target brood immediately moves 1D6” towards the nearest visible enemy." },
+            infestation: { roll: 2, name: "Infestation", description: "The target unit gains Erratic (" + TRAITS.erratic + ") until the end of the following enemy turn." },
+            bolsterTheHorde: { roll: 3, name: "Bolster the Horde", description: "Select 2 Broods. Each regains 1 point of Cohesion." },
+            primordialMind: { roll: 4, name: "Primordial Mind", description: "Initiate a psychic duel against a Psionic in sight. The Crawler takes no damage on a tie or loss." },
+            hordeRage: { roll: 5, name: "Horde Rage", description: "Until the end of the following Crawler turn, the target brood gains Penetrating Damage (" + TRAITS.penetratingDamage + ") and Regenerate (" + TRAITS.regenerate + ") but cannot fire." },
+            wavesOfHorror: { roll: 6, name: "Waves of Horror", description: "Select a target infantry squad and roll 3D6. For each die that rolls above the Cohesion of the unit the unit loses 1 point of Cohesion. The unit cannot initiate close combat if it is activated in the players next turn." }
+        }
+    },
     generic: {
         name: "Generic Psionic Abilities",
         powers: {
@@ -154,7 +172,7 @@ const PSIONIC_POWERS_LIST = {
 export const ARMY_LISTS = {
     imperialLegion: {
         name: "Imperial Legion (Grimdark)",
-        armySpecialRules: { holdTheGround: ARMY_SPECIAL_RULES.holdTheGround, imperials: ARMY_SPECIAL_RULES.imperials },
+        armySpecialRules: { holdTheGround: ARMY_SPECIAL_RULES.imperialLegion.holdTheGround, imperials: ARMY_SPECIAL_RULES.imperialLegion.imperials },
         psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, imperialLegion: PSIONIC_POWERS_LIST.imperialLegion },
         upgrades: {
             ...GENERIC_UPGRADES,
@@ -245,6 +263,51 @@ export const ARMY_LISTS = {
                     return units.some(
                         unit => unit.stats.specialRules?.includes(TRAITS.leadership)
                     )
+                }
+            }
+        ]
+    },
+    crawlerHorde: {
+        name: "The Crawler Hordes (Grimdark)",
+        armySpecialRules: { acidSpray: ARMY_SPECIAL_RULES.crawlerHorde.acidSpray, alienAnatomy: ARMY_SPECIAL_RULES.crawlerHorde.alienAnatomy, inhuman: ARMY_SPECIAL_RULES.crawlerHorde.inhuman },
+        psionicPowers: { crawlerHorde: PSIONIC_POWERS_LIST.crawlerHorde },
+        upgrades: {
+            ...GENERIC_UPGRADES,
+            searingChemicals: { name: "Searing Chemicals", keyword: SQUAD, statBonuses: { points: 2 }, description: "Gain the Flame Weapon Trait up to 9”: " + TRAITS.flameWeapon.description + " No effect if the unit lacks ranged attacks." },
+            acidBlood: { name: "Acid Blood", keyword: SQUAD, statBonuses: { points: 2 }, description: "When the unit takes damage in close combat (except from Combat Shock) roll 1D6 per point of Cohesion lost. Every 6 inflicts 1 point of Penetrating Damage (" + TRAITS.penetratingDamage.description + ") on the enemy unit" },
+            psiChannel: { name: "Psi Channel", keyword: SQUAD, statBonuses: { points: 1 }, description: "The unit counts as Psionic for the purpose of unit vulnerabilities. It adds +1 to hit and assault rolls against Psionic units" },
+            bugChampion: { name: "Bug Champion", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 2, points: 2 }, description: "Add +2 to Cohesion. Assaults gain +1 and Penetrating Damage (" + TRAITS.penetratingDamage.description + "). The assault bonus is lost if an enemy rolls a natural 6 in close combat against the unit." },
+            razorClaws: { name: "Razor Claws", keyword: SQUAD, statBonuses: { assault: { modifier: 1, antiTank: 1 }, points: 1 }, description: "+1 to Assault and Assault Anti-Tank (becomes +0 if currently -)" }, //TODO: handle granting of factor
+            bioPlasma: { name: "Bio-Plasma", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Gain Bypass Cover: " + TRAITS.bypassCover.description },
+            crushingGrip: { name: "Crushing Grip", keyword: INDIVIDUAL, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Assault Anti-Tank +1" },
+            spineLauncher: { name: "Spine Launcher", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Not subject to Combat Shock" },
+            waveShield: { name: "Wave Shield", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Gain Damage Mitigation except against Psionic units. Damage Mitigation: " + TRAITS.damageMitigation.description },
+            berserker: { name: "Berserker", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "If the unit loses or ties a close combat, fight another round again immediately." }
+        },
+        units: {
+            crawlerWarriors: { name: "Crawler Warriors", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 5, antiTank: 0 }, cohesion: 8, points: 13, composition: "3 large bugs", specialRules: [] },
+            crawlerWarriorsAcidCannon: { name: "Crawler Warriors - Acid Cannon", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 4, antiTank: 0 }, cohesion: 8, points: 15, composition: "3 large bugs with 1 heavy weapon", specialRules: [] },
+            mindSlaves: { name: "Mind Slaves", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 9, composition: "4-5 figures", specialRules: [{ name: "Mind Control", description: "Mind Slaves must always remain within 6” of another Crawler unit. Each time the unit is activated while more than 6” from other Crawlers, it immediately loses 2 Cohesion." }, { name: "Captives", description: " Mind Slave units do not count as Crawlers and do not benefit from any Crawler rules. They do not benefit from any army special rules regardless of what army the unit originally was part of."}] },
+            centaurSquad: { name: "Centaur Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 9, points: 15, composition: "2 bulky figures", specialRules: [] },
+            huntingBrood: { name: "Hunting Brood", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: null }, cohesion: 7, points: 8, composition: "5 figures", specialRules: [TRAITS.agile] },
+            clawedHorrors: { name: "Clawed Horrors", keyword: SQUAD, move: 7, assault: { modifier: 3, antiTank: 0 }, cohesion: 7, points: 9, composition: "5 figures", specialRules: [TRAITS.agile, { name: "Charge", description: "+1 to Assault when initiating combat." }] },
+            wingedBrood: { name: "Winged Brood", keyword: SQUAD, move: 7, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 1, antiTank: null }, cohesion: 7, points: 10, composition: "5 figures", specialRules: [{ name: "Descent", description: "Instead of setting up normally, at the end of the first game turn roll 2D6 and place them anywhere within that many inches of your table edge." }, TRAITS.jump] },
+            critters: { name: "Critters", keyword: SQUAD, move: 7, assault: { modifier: 1, antiTank: null }, cohesion: 6, points: 6, composition: "1 Swarm", specialRules: [{ name: "Chomp chomp", description: "Automatically regain 1 Cohesion each time they engage in assault combat. This is applied before resolving the combat. Not subject to Combat Shock." }, { name: "Fresh salad", description: "Critters do not count plant features as Bad Going and will clear a path as wide as the unit as they move through." }] },
+            mindBlaster: { name: "Mind Blaster", keyword: INDIVIDUAL, move: 3, firepower: [{ firefight: 0, battle: 1, long: 2, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 7, points: 15, composition: "1 big bug", specialRules: [TRAITS.individual, { name: "Psionic bolts", description: "Attack is considered to be psionic for the purpose of units specially affected by this" }, { name: "Psionic shield", description: " 1 point of Damage Mitigation (" + TRAITS.damageMitigation.description + "), unless the attacking unit is Psionic." }] },
+            sneakerKiller: { name: "Sneaker Killer", keyword: INDIVIDUAL, move: 6, assault: { modifier: 4, antiTank: 1 }, cohesion: 8, points: 15, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.agile, { name: "Evasive", description: "All incoming attacks are -1 to hit" }, { name: "Hunter", description: "Enemy Heroes that lose a round of close combat take +1 damage." }] },
+            bioArtillery: { name: "Bio Artillery", keyword: INDIVIDUAL, move: 3, firepower: [{ firefight: null, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 15, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.indirectFire, TRAITS.ponderous] },
+            screamer: { name: "Screamer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: 0, long: 2, antiTank: 2 }], assault: { modifier: 5, antiTank: 3 }, cohesion: 12, points: 29, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.damageMitigation, TRAITS.terror, TRAITS.simpleMinded, { name: "Monster", description: "Size 3" }] },
+            crawlerOverseer: { name: "Crawler Overseer", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 2, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 6, antiTank: 2 }, cohesion: 9, points: 25, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.terror, TRAITS.regenerate, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.crawlerHorde] },
+            crawlerOverseerAcidCannon: { name: "Crawler Overseer - Acid Cannon", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 2 }], assault: { modifier: 6, antiTank: 2 }, cohesion: 9, points: 25, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.terror, TRAITS.regenerate, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.crawlerHorde] }, //Handles acid cannon option
+        },
+        validator: [
+            {
+                description: "The number of Individuals taken must be less than the number of Broods.",
+                validate: units => {
+                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                    return individuals < squads;
                 }
             }
         ]
