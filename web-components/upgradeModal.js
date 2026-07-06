@@ -1,5 +1,6 @@
 'use strict'
 
+import {INDIVIDUAL, TRAITS} from '../scripts/constants.js';
 import './upgradeCard.js';
 
 export default class UpgradeModal extends HTMLElement {
@@ -79,7 +80,7 @@ export default class UpgradeModal extends HTMLElement {
         const upgradesContainer = this.shadow.querySelector('#upgradesContainer');
         for(let i = 0; i < this._upgrades.length; i++){
             let upgrade = this._upgrades[i];
-            if(upgrade.keyword === this._unit.stats.keyword){
+            if(upgrade.keyword === this._unit.stats.keyword || upgrade.keyword === INDIVIDUAL && this._unit.stats.specialRules.includes(TRAITS.individual)){ //TODO: Ugly way of handling individual upgrades being available for units that do not have individual keyword but ability. Might need to chagne this later anyway if there are other edge cases like it.
                 let upgradeItem = document.createElement('upgrade-card');
                 upgradeItem.upgrade = upgrade;
                 upgradesContainer.append(upgradeItem);
