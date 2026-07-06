@@ -77,12 +77,12 @@ class UnitCard extends HTMLElement {
                 #card {
                     position: relative;
                     border: 1px solid black;
-                    padding: 5px;
-                    margin: 10px;
-                    width: 250px;
+                    padding: 3px;
+                    margin: 3px;
+                    width: 400px;
                 }
                 #card p{
-                    margin: 10px;
+                    margin: 3px;
                 }
                 
                 #card ul{

@@ -74,7 +74,7 @@ export default class MainView extends HTMLElement {
             <h1>Rogue Hammer Army Builder</h1>
             <button id="addArmyButton">Add New Army</button>
             <button id="loadArmyButton">Load Saved Army</button>
-            <div id="openArmyTabs"></div>
+            <div id="openArmyTabs">Opened armies: </div>
             <div id="armyCardHolder"></div>
         `;
 

@@ -59,6 +59,8 @@ export default class UpgradeModal extends HTMLElement {
                     position: relative;
                     display: flex;
                     flex-wrap: wrap;
+                    overflow-y: scroll;
+                    max-height: 90vh;
                 }
 
                 #closeModalButton{

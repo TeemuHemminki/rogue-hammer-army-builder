@@ -86,7 +86,7 @@ export const TRAITS = {
     siegeGun: { name: "Siege Gun", description: "Add +1 to Anti Tank and damage rolls against buildings." },
     simpleMinded: { name: "Simple Minded", description: "The unit cannot choose the Carry Out Action. It cannot claim or complete any Objectives." },
     sniping: { name: "Sniping", description: "Ranged attacks against Individuals are +1 damage." },
-    specialist: { name: "Specialist", description: "The unit cannot be given Squad Upgrades." },
+    specialist: { name: "Specialist", description: "The unit cannot be given Squad Upgrades." }, //TODO: Handling specialist in army building
     terror: { name: "Terror", description: "+1 to Assault rolls against Squads. Does not apply if the Squad has one of Simple Minded, Robot or Mechanical." },
     tracked: { name: "Tracked", description: "The vehicle follows the terrain rules for Tracked vehicles." },
     wheeled: { name: "Wheeled", description: "The vehicle follows the terrain rules for Wheeled vehicles." },

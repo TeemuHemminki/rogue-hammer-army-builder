@@ -23,7 +23,9 @@ export default class UpgradeCard extends HTMLElement {
             <style>
                 div{
                     border: 1px solid black;
-                    width: 150px;
+                    padding: 3px;
+                    margin: 3px;
+                    width: 200px;
                 }
             </style>
             <div>

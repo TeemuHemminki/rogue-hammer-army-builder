@@ -99,18 +99,26 @@ export default class ArmyCard extends HTMLElement {
             <upgrade-modal id="upgradeModal"></upgrade-modal>
             <select-unit-modal id="selectUnitModal"></select-unit-modal>
             <style>
+                #wrapper{
+                    background-color: black;
+                    color: white;
+                }
                 #units{
                     display: flex;
                     max-width: 95%;
                     flex-wrap: wrap;
                 }
             </style>
+            <div id="wrapper">
             <h2>Army: ${this._army.name ? this._army.name + " (" + this._army.armyList.name + ")" : this._army.armyList.name} <button id="editNameButton">📝</button></h2>
+            <p>
             <button id="addUnitButton">Add Unit</button>
             <button id="deleteArmyButton">🗑️</button>
             <button id="closeArmyButton">X</button>
-            <p>Total points: <span id="points"></span></p>
+             Total points: <span id="points"></span>
             <details id="validation"}><summary id="validationSummary"></summary></details>
+            </p>
+            <h3>Army Special Rules</h3>
             ${this._army.armyList.armySpecialRules ?
                 "<div id='armySpecialRules'></div>" : ""
             }
@@ -120,6 +128,7 @@ export default class ArmyCard extends HTMLElement {
             <p id="armySpecialRules"></p>
             <button id="rollCampaignRewardButton">Roll campaign reward</button>
             <div id="units"></div>
+            </div>
         `;
 
         const validationElement = this.shadow.querySelector('#validation');
