@@ -130,6 +130,10 @@ const ARMY_SPECIAL_RULES = {
     imperialLegion: {
         holdTheGround: { name: "Hold the ground", description: "At the end of your turn, select one Legion unit that is in a building or fortification or which is holding a Scenario Objective. The selected unit recovers 1 lost point of Cohesion" },
         imperials: { name: "Imperials", description: "All units from this army list are considered Imperial units." },
+    },
+    killBots:{
+        selfRepair: {name:"Self Repair", description: "At the end of your player Phase, select any one Kill Bot squad and restore up to 2 points of lost Cohesion. Kill Bots cannot regain Cohesion in any other way, including by taking the Regroup Action."},
+        distortionField: {name:"Distortion Field", description: "Non Kill Bot units within 6” of 1 or more Kill Bot units suffer a -1 penalty to hit when firing. The penalty is not cumulative"},
     }
 }
 
@@ -312,4 +316,32 @@ export const ARMY_LISTS = {
             }
         ]
     }
+
+    /*
+    Template for army lists.
+        template: {
+        name: "",
+        armySpecialRules: { foo: ARMY_SPECIAL_RULES.armyName.ruleName },
+        psionicPowers: { foo: PSIONIC_POWERS_LIST.foo },
+        upgrades: {
+            ...GENERIC_UPGRADES,
+            upgrade: { name: "foo", keyword: SQUAD, statBonuses: { points: 1 }, description: "foo" },
+        },
+        units: {
+            squad: { name: "foo", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 10, composition: "5 figures", specialRules: [] },
+			psyker: { name: "bar", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.foo] },
+        },
+        validator: [
+            {
+                description: "The number of Individuals taken must be less than the number of Squads.",
+                validate: units => {
+                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                    return individuals < squads;
+                }
+            }
+        ]
+    }
+    */
 }
