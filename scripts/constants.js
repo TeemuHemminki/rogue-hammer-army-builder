@@ -142,10 +142,10 @@ const PSIONIC_POWERS_LIST = {
         name: "Crawler Horde Psionic Abilities",
         powers: {
             hordeRush: { roll: 1, name: "Horde rush", description: "Target brood immediately moves 1D6” towards the nearest visible enemy." },
-            infestation: { roll: 2, name: "Infestation", description: "The target unit gains Erratic (" + TRAITS.erratic + ") until the end of the following enemy turn." },
+            infestation: { roll: 2, name: "Infestation", description: "The target unit gains Erratic (" + TRAITS.erratic.description + ") until the end of the following enemy turn." },
             bolsterTheHorde: { roll: 3, name: "Bolster the Horde", description: "Select 2 Broods. Each regains 1 point of Cohesion." },
             primordialMind: { roll: 4, name: "Primordial Mind", description: "Initiate a psychic duel against a Psionic in sight. The Crawler takes no damage on a tie or loss." },
-            hordeRage: { roll: 5, name: "Horde Rage", description: "Until the end of the following Crawler turn, the target brood gains Penetrating Damage (" + TRAITS.penetratingDamage + ") and Regenerate (" + TRAITS.regenerate + ") but cannot fire." },
+            hordeRage: { roll: 5, name: "Horde Rage", description: "Until the end of the following Crawler turn, the target brood gains Penetrating Damage (" + TRAITS.penetratingDamage.description + ") and Regenerate (" + TRAITS.regenerate.description + ") but cannot fire." },
             wavesOfHorror: { roll: 6, name: "Waves of Horror", description: "Select a target infantry squad and roll 3D6. For each die that rolls above the Cohesion of the unit the unit loses 1 point of Cohesion. The unit cannot initiate close combat if it is activated in the players next turn." }
         }
     },
@@ -276,7 +276,6 @@ export const ARMY_LISTS = {
         armySpecialRules: { acidSpray: ARMY_SPECIAL_RULES.crawlerHorde.acidSpray, alienAnatomy: ARMY_SPECIAL_RULES.crawlerHorde.alienAnatomy, inhuman: ARMY_SPECIAL_RULES.crawlerHorde.inhuman },
         psionicPowers: { crawlerHorde: PSIONIC_POWERS_LIST.crawlerHorde },
         upgrades: {
-            ...GENERIC_UPGRADES,
             searingChemicals: { name: "Searing Chemicals", keyword: SQUAD, statBonuses: { points: 2 }, description: "Gain the Flame Weapon Trait up to 9”: " + TRAITS.flameWeapon.description + " No effect if the unit lacks ranged attacks." },
             acidBlood: { name: "Acid Blood", keyword: SQUAD, statBonuses: { points: 2 }, description: "When the unit takes damage in close combat (except from Combat Shock) roll 1D6 per point of Cohesion lost. Every 6 inflicts 1 point of Penetrating Damage (" + TRAITS.penetratingDamage.description + ") on the enemy unit" },
             psiChannel: { name: "Psi Channel", keyword: SQUAD, statBonuses: { points: 1 }, description: "The unit counts as Psionic for the purpose of unit vulnerabilities. It adds +1 to hit and assault rolls against Psionic units" },
@@ -315,8 +314,56 @@ export const ARMY_LISTS = {
                 }
             }
         ]
+    },
+    killBots: {
+        name: "Killbots (Grimdark)",
+        armySpecialRules: { selfRepair: ARMY_SPECIAL_RULES.killBots.selfRepair, distortionField: ARMY_SPECIAL_RULES.killBots.distortionField, noPsionics: {name: "No psionics", description: "Kill Bots cannot use Psionics under any circumstances"} },
+        psionicPowers: { },
+        upgrades: {
+            repeatingGaussRifle: { name: "Repeating Gauss Rifle", keyword: SQUAD, statBonuses: { points: 1 }, description: "Add Anti Personnel trait: " + TRAITS.antiPersonnel.description },
+            heavyGaussBeam: { name: "Heavy Gauss Beam", keyword: SQUAD, statBonuses: { firepower: { antiTank: 1 }, points: 2 }, description: "Ranged Anti Tank is increased by 1. Units with ranged attacks only." },
+            heavyCorrosiveVibrations: { name: "Heavy Corrosive Vibrations", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Assault Anti Tank becomes +1 if currently - and is increased by 1 otherwise." },
+            sinisterAura: { name: "Sinister Aura", keyword: SQUAD, statBonuses: { points: 1 }, description: "Gain Terror trait: " + TRAITS.terror.description },
+            anointedByTheAncient: { name: "Anointed by the Ancient", keyword: SQUAD, statBonuses: { assault: {modifier:1}, cohesion: 1, points: 2 }, description: "Increase Close Combat and Cohesion by +1." },
+            timeDistortionSphere: { name: "Time Distortion Sphere", keyword: INDIVIDUAL, statBonuses: { points: 5 }, description: "Single Use. Receive one less Limited Activations this turn. Next turn, receive one more Full Activations." },
+            gaussScatterBeam: { name: "Gauss Scatter Beam", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Gain Anti Personnel trait: " + TRAITS.antiPersonnel.description },
+            liquidMetal: { name: "Liquid Metal", keyword: INDIVIDUAL, statBonuses: { cohesion: 1, points: 4 }, description: "+1 to Cohesion and Damage Mitigation: " + TRAITS.damageMitigation.description },
+            phaseBlade: { name: "Phase Blade", keyword: INDIVIDUAL, statBonuses: { assault: {modifier:1}, points: 3 }, description: "Gain Penetrating Damage in close Combat (" + TRAITS.penetratingDamage.description + "). +1 to Assault."},
+            phaseNullificationBeacon: { name: "Phase Nullification Beacon", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Distortion Field extends to 9” instead of 6”." }
+        },
+        units: {
+            raiderBots: { name: "Raider-Bots", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 15, composition: "4 figures", specialRules: [] },
+            heavyGunBots: { name: "Heavy Gun Bots", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 2, long: 1, antiTank: 1 }], assault: { modifier: 1, antiTank: null }, cohesion: 8, points: 18, composition: "3 figures", specialRules: [] },
+            slaughterBots: { name: "Slaughter Bots", keyword: SQUAD, move: 6, assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 14, composition: "4 figures", specialRules: [TRAITS.agile] },
+            cursedBots: { name: "Cursed Bots", keyword: SQUAD, move: 6, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 3, antiTank: 3 }, cohesion: 8, points: 20, composition: "4 figures", specialRules: [ {name:"Anti Psionic", description: "+1 to hit and close combat against Psionic units"}, TRAITS.penetratingDamage ] },
+            skitterBots: { name: "Skitter Bots", keyword: SQUAD, move: 7, assault: { modifier: 0, antiTank: 0 }, cohesion: 6, points: 8, composition: "4-6 small figures", specialRules: [TRAITS.agile, {name: "Disruption", description: "Attacks against units within 6” of Skitter Bots receive a +1 bonus to hit/close combat."}] },
+            ghostBots: { name: "Ghost Bots", keyword: SQUAD, move: 6, assault: { modifier: 4, antiTank: 0 }, cohesion: 8, points: 16, composition: "2 large figures", specialRules: [{name: "Phase", description: "Ghosts can move through units and terrain. They cannot end a move within a solid terrain feature"}] },
+            hoverGunBots: { name: "Hover Gun Bots", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 2, long: 2, antiTank: 2 }], assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 23, composition: "2 figures", specialRules: [TRAITS.hover] },
+			killBotLord: { name: "Kill Bot Lord", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 1 }], assault: { modifier: 1, antiTank: 2 }, cohesion: 10, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, {name: "Energy Weapon", description: "Close Combat damage is Penetrating: " + TRAITS.penetratingDamage.description} ] },
+            killBotAssassin: { name: "Kill Bot Assassin", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 10, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.antiPersonnel, {name: "Hunter", description:"Enemy Heroes that lose a round of close combat take +1 damage."} ] },
+            gunBotPlatform: { name: "Gun Bot Platform", keyword: VEHICLE, move: 7, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: 3 }], armour: { front: 8, side: 7, rear: 7 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured] },
+            killStrider: { name: "Kill Strider", keyword: VEHICLE, move: 6, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 1, antiTank: null }, armour: { front: 9, side: 8, rear: 7 }, points: 16, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.flameWeapon, TRAITS.siegeGun] },
+            skullCrawler: { name: "Skull Crawler", keyword: VEHICLE, move: 4, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: {modifier: 1, antiTank: null}, armour: { front: 10, side: 10, rear: 10 }, points: 30, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.ponderous, TRAITS.forwardFiring, {name:"Two shots", description:"May shoot twice. Decare both targets before rolling. Targets must be within 6” of each other."}] },
+            deathPyramid: { name: "Death Pyramid", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 2, long: null, antiTank: 1 }], armour: { front: 11, side: 11, rear: 11 }, points: 30, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured, TRAITS.ponderous, {name:"Arc weapon", description: "May attack 2 different units each turn. Must always target the closest visible enemies."}] }
+        },
+        validator: [
+            {
+                description: "You may take up to 1 support unit and 1 individual for every 2 squads. Every 5 squads allow selecting 1 additional support unit OR individual.",
+                validate: units => {
+                    let support = units.filter(unit => unit.stats.keyword === VEHICLE);
+                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+                    let extraSupportOrIndividuals = Math.floor(squads.length / 5);
+                    let allowedSupportOrIndividuals = Math.floor(squads.length / 2);
+                    let excessSupport = support.length - allowedSupportOrIndividuals;
+                    excessSupport = excessSupport < 0 ? 0 : excessSupport;
+                    let excessIndividuals = individuals.length - allowedSupportOrIndividuals;
+                    excessIndividuals = excessIndividuals < 0 ? 0 : excessIndividuals;
+                    return excessSupport + excessIndividuals > extraSupportOrIndividuals ? false : true;
+                }
+            }
+        ]
     }
-
     /*
     Template for army lists.
         template: {
@@ -330,6 +377,7 @@ export const ARMY_LISTS = {
         units: {
             squad: { name: "foo", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 10, composition: "5 figures", specialRules: [] },
 			psyker: { name: "bar", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.foo] },
+            tank: { name: "baz", keyword: VEHICLE, move: 8, firepower: [{ firefight: 2, battle: 2, long: 2, antiTank: null }, { firefight: 1, battle: 1, long: 1, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] }
         },
         validator: [
             {
