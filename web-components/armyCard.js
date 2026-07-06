@@ -100,13 +100,34 @@ export default class ArmyCard extends HTMLElement {
             <select-unit-modal id="selectUnitModal"></select-unit-modal>
             <style>
                 #wrapper{
-                    background-color: black;
+                    background-image: url("../background.png");
                     color: white;
                 }
                 #units{
                     display: flex;
                     max-width: 95%;
                     flex-wrap: wrap;
+                }
+                #armySpecialRules{
+                    background-color: #1D6AA4;
+                    color: #17324d;
+                }
+                #armySpecialRules:nth-child(even){
+                    background-color: #cfe3f5;
+                    border: 1px solid #17324d;
+                }
+                #armySpecialRules:nth-child(odd){
+                    background-color: #ebf2f8;
+                    border: 1px solid #17324d;
+                }
+                h3, h4{
+                    margin: 0;
+                    color: #17324d;
+                    background-color: #cfe3f5;
+                    border: 2px solid #17324d;
+                }
+                p{
+                    margin: 5px;
                 }
             </style>
             <div id="wrapper">
@@ -125,7 +146,6 @@ export default class ArmyCard extends HTMLElement {
             ${this._army.armyList.psionicPowers ?
                 "<details id='psionics'><summary id='psionicsSummary'>Psionic power lists</summary></details>" : ""
             }
-            <p id="armySpecialRules"></p>
             <button id="rollCampaignRewardButton">Roll campaign reward</button>
             <div id="units"></div>
             </div>

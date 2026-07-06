@@ -52,7 +52,7 @@ class UnitCard extends HTMLElement {
             experienceUpgrade += !substat ? eu.statBonuses[stat] ?? null : eu.statBonuses?.[stat]?.[substat] ?? null;
         }
         for (let cr of this._unit.campaignRewards) {
-            if(!cr.activated){
+            if (!cr.activated) {
                 continue;
             }
             let reward = this._unit.getCampaignReward(cr);
@@ -74,36 +74,56 @@ class UnitCard extends HTMLElement {
     render() {
         this.shadow.innerHTML = `
             <style>
-                #card {
-                    position: relative;
-                    border: 1px solid black;
-                    padding: 3px;
-                    margin: 3px;
-                    width: 400px;
-                }
-                #card p{
-                    margin: 3px;
-                }
-                
-                #card ul{
+                #cardFrame {
+                    --p:5px;
+                    padding-left: var(--p);
+                    padding-top: var(--p);
+                    padding-right: var(--p);
+                    padding-bottom: var(--p);
+                    width: 600px;
+                    clip-path: polygon( 30% 0%, 70% 0%, 100% 15%, 100% 85%, 70% 100%, 30% 100%, 0% 85%, 0% 15% );
                     margin: 5px;
-                    padding: 0 0 0 20px;
+                    background-color: #17324d;
+                    position: relative;
+                }
+                #card{
+                    margin: 5px;
+                    background-color: #cfe3f5;
+                    color: #17324d;
+                    clip-path: inherit;
+                }
+                #content{
+                    margin-top: 5%;
+                    margin-bottom: 5%;
                 }
                 #deleteUnitButton {
                     position: absolute;
                     right: 5px;
                     top: 5px;
                 }
+                p{
+                    margin: 1px;
+                }
+                h3,h4{
+                    margin: 1px;
+                }
+                ul{
+                    list-style-type: none;
+                    margin: 5px;
+                    padding: 0 0 0 20px;
+                }
             </style>
+            <div id="cardFrame">
             <div id="card">
                 <button id="deleteUnitButton">🗑️</button>
                 <h3>${this._unit.name}<button id="editNameButton">📝</button></h3>
+                <div id="content">
                 ${this._unit.stats.keyword != VEHICLE ? '<p>Campaign Unit: <input type="checkbox" id="campaignUnit"}/></p>' : ''}
                 ${this._unit.campaignUnit ? '<p>Inactive: <input type="checkbox" id="inactive"/> Skip next battle: <input type="checkbox" id="skipBattle"/>' : ''}
                 ${this._unit.campaignUnit ? '<p><button id="experienceButton">Add experience point</button><ul id="rankUpgrades"></ul> Experience points: ' + this._unit.experience + '. Rank: ' + this._unit.rank.rank + '</p>' : ''}
                 <p>Move: ${this.getStat({ stat: "move", isMovement: true })}</p>
                 ${this._unit.stats.firepower != null
-                ? '<p>Firepower:<ul id="firepower"></ul></p>'
+                ? '<p>Firepower 9” / 24” / long<ul id="firepower"></ul></p>'
                 : ''
             }
                 ${this._unit.stats.assault != null
@@ -121,7 +141,7 @@ class UnitCard extends HTMLElement {
                 <p>Points: ${this.getStat({ stat: "points" })}</p>
                 <p>Composition: ${this._unit.stats.composition}</p>
                 ${this._unit.stats.specialRules != null
-                ? '<p>Special Rules:<ul id="specialRules"></ul></p>'
+                ? '<p><h4>Special Rules</h4><ul id="specialRules"></ul></p>'
                 : ''
             }
             ${this._unit.stats.psionicLevel != null ? '<p>Psionic Level: ' + this._unit.stats.psionicLevel + '. Powers list: <select id="selectPsionicPowerList"></select></p>' : ''}
@@ -131,6 +151,8 @@ class UnitCard extends HTMLElement {
                 ${this._unit.experienceUpgrades.length > 0 ? '<p>Experience upgrades: <ul id="experienceUpgrades"></ul></p>' : ''}
                 ${this._unit.campaignRewards.length > 0 ? '<p>Campaign rewards: <ul id="campaignRewards"></ul></p>' : ''}
                 <button id="upgradeButton">Select upgrade</button>
+                </div>
+            </div>
             </div>
         `;
 
@@ -140,10 +162,10 @@ class UnitCard extends HTMLElement {
                 let fireMode = this._unit.stats.firepower[i];
                 let firepowerItem = document.createElement('li');
                 firepowerItem.innerText += fireMode.name != null ? fireMode.name + " - " : "";
-                firepowerItem.innerText += "Firefight: " + this.getStat({ stat: "firepower", substat: "firefight", index: i, isModifier: true }) + " | ";
-                firepowerItem.innerText += "Battle: " + this.getStat({ stat: "firepower", substat: "battle", index: i, isModifier: true }) + " | ";
-                firepowerItem.innerText += "Long: " + this.getStat({ stat: "firepower", substat: "long", index: i, isModifier: true }) + " | ";
-                firepowerItem.innerText += "Anti-Tank: " + this.getStat({ stat: "firepower", substat: "antiTank", index: i, isModifier: true });
+                firepowerItem.innerText += this.getStat({ stat: "firepower", substat: "firefight", index: i, isModifier: true }) + " | ";
+                firepowerItem.innerText += this.getStat({ stat: "firepower", substat: "battle", index: i, isModifier: true }) + " | ";
+                firepowerItem.innerText += this.getStat({ stat: "firepower", substat: "long", index: i, isModifier: true }) + " | ";
+                firepowerItem.innerText += this.getStat({ stat: "firepower", substat: "antiTank", index: i, isModifier: true });
                 firepowerContainer.append(firepowerItem);
             }
         }
@@ -158,7 +180,12 @@ class UnitCard extends HTMLElement {
             const specialRulesContainer = this.shadow.querySelector('#specialRules');
             for (const specialRule of this._unit.stats.specialRules) {
                 let specialRuleItem = document.createElement('li');
-                specialRuleItem.innerText = specialRule.name + ": " + specialRule.description;
+                let specialRuleElement = document.createElement('span');
+                let specialRuleItemHeader = document.createElement('strong');
+                specialRuleItemHeader.innerText = specialRule.name;
+                specialRuleItem.append(specialRuleItemHeader);
+                specialRuleElement.innerText = ": " + specialRule.description;
+                specialRuleItem.append(specialRuleElement);
                 specialRulesContainer.append(specialRuleItem);
             }
         }
