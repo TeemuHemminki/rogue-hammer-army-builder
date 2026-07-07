@@ -78,6 +78,7 @@ class Main {
     }
 
     getListOfSavedArmies() {
+        //BUG: At times list of saved armies can be empty object or some other anomalies (if army is created but no units saved). Handle saving properly and loading error situations.
         let armies = [];
         let savedArmies = JSON.parse(localStorage.getItem('savedArmies'));
         for (let army of Object.entries(savedArmies)) {

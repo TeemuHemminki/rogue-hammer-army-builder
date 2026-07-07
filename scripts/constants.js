@@ -127,13 +127,19 @@ const ARMY_SPECIAL_RULES = {
         alienAnatomy: { name: "Alien Anatomy", description: "Crawlers ignore terrain hazards. In special scenarios, no poison, gas or virus can affect them." },
         inhuman: { name: "Inhuman", description: "Crawlers can only use Crawler unit upgrades, never the General tables." },
     },
+    imperials: {
+        imperials: { name: "Imperials", description: "All units from this army list are considered Imperial units." }
+    },
     imperialLegion: {
-        holdTheGround: { name: "Hold the ground", description: "At the end of your turn, select one Legion unit that is in a building or fortification or which is holding a Scenario Objective. The selected unit recovers 1 lost point of Cohesion" },
-        imperials: { name: "Imperials", description: "All units from this army list are considered Imperial units." },
+        holdTheGround: { name: "Hold the ground", description: "At the end of your turn, select one Legion unit that is in a building or fortification or which is holding a Scenario Objective. The selected unit recovers 1 lost point of Cohesion" }
     },
     killBots:{
         selfRepair: {name:"Self Repair", description: "At the end of your player Phase, select any one Kill Bot squad and restore up to 2 points of lost Cohesion. Kill Bots cannot regain Cohesion in any other way, including by taking the Regroup Action."},
-        distortionField: {name:"Distortion Field", description: "Non Kill Bot units within 6” of 1 or more Kill Bot units suffer a -1 penalty to hit when firing. The penalty is not cumulative"},
+        distortionField: {name:"Distortion Field", description: "Non Kill Bot units within 6” of 1 or more Kill Bot units suffer a -1 penalty to hit when firing. The penalty is not cumulative"}
+    },
+    starKnights:{
+        tacticalCoordination: {name:"Tactical Coordination", description: "Star Knights convert one partial activation to a full activation. For example in a normal game instead of 2 full and 2 limited activations, Star Knights would receive 3 full and 1 limited activation. The conversion can only be used in a turn where at least 2 Star Knight units are being activated."},
+        environmentSuit: {name:"Environment Suit", description: "Not affected by Dangerous Terrain."}
     }
 }
 
@@ -171,12 +177,34 @@ const PSIONIC_POWERS_LIST = {
             roilingAssassin: { roll: 6, name: "Roiling Assassin", description: "Select a target Individual and roll 2D6. The target rolls 2D6. For each point the Psionic rolls higher, the target takes 1 point of damage." }
         }
     },
+    spaceOrcs: {
+        name: "Space Orc Psionic Abilities",
+        powers: { //TODO: fill descriptions
+            powerShove: { roll: 1, name: "Power Shove", description: "" },
+            energyDissipation: { roll: 2, name: "Energy Dissipation", description: "" },
+            powerBolt: { roll: 3, name: "Power Bolt", description: "" },
+            brainEruption: { roll: 4, name: "Brain Eruption", description: "" },
+            struggleToThink: { roll: 5, name: "Struggle to think", description: "" },
+            waveOfEnergy: { roll: 6, name: "Wave of Energy", description: "" }
+        }
+    },
+    starKnights: {
+        name: "Star Knight Psionic Abilities",
+        powers: {
+            mentalFortress: {roll:1, name: "Mental Fortress", description: "Until the end of the following enemy turn, the Psionic cannot engage or be engaged in Psionic Duels, nor targeted by Psionic Powers. Imperial Units within 9” are not affected by Terror: " + TRAITS.terror.description},
+            ritesOfWar: {roll: 2, name: "Rites of War", description: `Target unit gains Terror (${TRAITS.terror.description}) and Agile (${TRAITS.agile.description}) until the end of the following enemy turn.`},
+            flameSummon: {roll: 3, name: "Flame Summon", description: "Draw a straight line up to 9”. Any unit that the line passes through (friend or foe) is attacked with +1 Firepower, AT +0."},
+            personalTeleport: {roll: 4, name: "Personal Teleport", description: "The Psionic can move to any location within 9”. Destination does not have to be visible."},
+            psionicAugmentatio: {roll: 5, name: "Psionic Augmentation", description: `Until the end of the following enemy turn, the Psionic gains Damage Mitigation (${TRAITS.damageMitigation.description}) and Penetrating Damage (${TRAITS.penetratingDamage.description}).`},
+            mentalShock: {roll: 6, name: "Mental Shock", description: `Roll 2D6. If the roll exceeds the Cohesion of the target unit, it takes 2 points of Penetrating Damage (${TRAITS.penetratingDamage.description}).`}
+        }
+    }
 }
 
 export const ARMY_LISTS = {
     imperialLegion: {
         name: "Imperial Legion (Grimdark)",
-        armySpecialRules: { holdTheGround: ARMY_SPECIAL_RULES.imperialLegion.holdTheGround, imperials: ARMY_SPECIAL_RULES.imperialLegion.imperials },
+        armySpecialRules: { holdTheGround: ARMY_SPECIAL_RULES.imperialLegion.holdTheGround, imperials: ARMY_SPECIAL_RULES.imperials.imperials },
         psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, imperialLegion: PSIONIC_POWERS_LIST.imperialLegion },
         upgrades: {
             ...GENERIC_UPGRADES,
@@ -360,6 +388,58 @@ export const ARMY_LISTS = {
                     let excessIndividuals = individuals.length - allowedSupportOrIndividuals;
                     excessIndividuals = excessIndividuals < 0 ? 0 : excessIndividuals;
                     return excessSupport + excessIndividuals > extraSupportOrIndividuals ? false : true;
+                }
+            }
+        ]
+    },
+    starKnights: {
+        name: "Star Knights (Grimdark)",
+        armySpecialRules: { tacticalCoordination: ARMY_SPECIAL_RULES.starKnights.tacticalCoordination, environmentSuit: ARMY_SPECIAL_RULES.starKnights.environmentSuit, imperials: ARMY_SPECIAL_RULES.imperials.imperials }, //TODO: How to handle Star Knight variants
+        psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, starKnights: PSIONIC_POWERS_LIST.starKnights },
+        upgrades: {
+            ...GENERIC_UPGRADES,
+            antiTankGrenades: { name: "Anti Tank Grenades", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Increase Assault Anti Tank by +1." },
+            stormRounds: { name: "Storm Rounds", keyword: SQUAD, statBonuses: { firepower: { firefight: 1, battle: 0, long: -1 }, points: 2 }, description: "Only available to units with Firepower at all three range bands. Modify existing Firepower by +1 / +0 / -1" }, //TODO: handle restriction
+            gravSuspendedWeapons: { name: "Grav Suspended Weapons", keyword: SQUAD, statBonuses: { move: 1, points: 2 }, description: "If Move is 4”, increase to 5”." },
+            fusionRifle: { name: "Fusion Rifle", keyword: SQUAD, statBonuses: { points: 3 }, description: "Add +1 to Anti Tank shooting within 9”." },
+            honouredVeteran: { name: "Honoured Veteran", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 1, points: 3 }, description: "Increase Close Combat and Cohesion by +1." },
+            multiWeapon: { name: "Multi-Weapon", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Each time the unit shoots it may use its standard fire option or fire with +0/+0/- Firepower and +0 Anti Tank factors." }, //TODO: Maybe add as another firepower element?
+            venerableBlade: { name: "Venerable Blade", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `In Close Combat, the character gains Penetrating Damage (${TRAITS.penetratingDamage.description}). If fighting an opposing Individual, inflict 1 additional point of damage on a tie or win.` },
+            masterCraftedPistol: { name: "Master Crafted Pistol", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: `Gain Anti Personnel (${TRAITS.antiPersonnel.description}) within 9”.` },
+            warRelic: { name: "War Relic", keyword: INDIVIDUAL, statBonuses: { points: 4 }, description: `At the start of each Star Knight turn, the closest Imperial unit within 9” and sight gain Damage Mitigation (${TRAITS.damageMitigation.description}) until the start of the next Star Knight turn The Character does not have to be activated for this to take effect.` },
+            vowsOfVengeance: { name: "Vows of Vengeance", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `The Individual gains Limited Intelligence (${TRAITS.limitedIntelligence.description}). Add +1 to Close Combat against Individuals.` },
+            assaultGrenadeLaunchers: { name: "Assault Grenade Launchers", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Armoured Vehicles only. Single use. Select an Infantry unit within 6” and roll 3D6. Inflict 1 damage per die showing a 4+.` }, //TODO: Handle requirement of vehicle being armoured
+            defenceSystem: { name: "Defence System", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Armoured Vehicles only. Each time the vehicle suffers damage roll 1D6. On a 5-6 the damage is negated and the Defence System is unavailable for the rest of the battle.` }, //TODO: Handle requirement of vehicle being armoured
+            assaultTransport: { name: "Assault Transport", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Armoured Vehicles only. Transport only. Units that disembark receive +1 to Close Combat rolls for the rest of the current and all of the following enemy turn.` }, //TODO: Handle requirement of vehicle being armoured
+            reconLink: { name: "Recon Link", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Light Vehicles only. All Star Knight units gain +1 to hit when firing at targets within 12” and sight of the vehicle with the Recon Link.` }, //TODO: Handle requirement of vehicle being light
+            optimisedSteering: { name: "Optimised Steering", keyword: VEHICLE, statBonuses: { points: 1 }, description: `For Light Vehicles only. The vehicle can turn one additional time per Activation.` } //TODO: Handle requirement of vehicle being light
+        },
+        units: {
+            tacticalSquad: { name: "Tactical Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures with 1 heavy weapon", specialRules: [] },
+        },
+        validator: [
+            {
+                description: "If all Vehicles selected are Unarmoured Vehicles and you do not select any Field Artillery, you may take as many Vehicles as you have Squads. Otherwise the total number of Vehicles and Field Artillery must be less than the number of Squads.",
+                validate: units => {
+                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+                    let armoredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.armour != null);
+                    let unarmouredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.cohesion != null);
+                    let fieldArtillery = units.filter(unit => unit.stats.keyword === FIELD_ARTILLERY);
+                    let vehiclesAndFieldArtillery = armoredVehicles.length + unarmouredVehicles.length + fieldArtillery.length;
+
+                    if(unarmouredVehicles.length > 0 || fieldArtillery.length > 0){
+                        return vehiclesAndFieldArtillery < squads;
+                    }
+                        return armoredVehicles <= squads;
+                }
+            },
+            {
+                description: "You may select up to 1 Character for every Squad.",
+                validate: units => {
+                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                    return individuals <= squads;
                 }
             }
         ]
