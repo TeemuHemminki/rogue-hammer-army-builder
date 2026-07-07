@@ -8,11 +8,11 @@ const ASSAULT = { "modifier": null, "antiTank": null };
 const ARMOUR = { "front": null, "side": null, "rear": null };
 
 //Keywords for linking what upgrades are available to what unit types
-export const SQUAD = 'squad';
-export const INDIVIDUAL = 'individual';
-export const COMMAND = "command";
-export const VEHICLE = 'vehicle';
-export const FIELD_ARTILLERY = 'field artilery';
+export const SQUAD = {icon:'🪖', order: 1};
+export const INDIVIDUAL = {icon:'🎖️', order: 2};
+export const COMMAND = {icon:'📡', order: 3};
+export const VEHICLE = {icon:'🛡️', order: 4};
+export const FIELD_ARTILLERY = {icon:'💥', order: 5};
 
 //Campaign stuff
 export const RANKS = {

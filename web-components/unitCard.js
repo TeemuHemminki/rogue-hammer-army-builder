@@ -97,7 +97,7 @@ class UnitCard extends HTMLElement {
             </style>
             <div id="card">
                 <button id="deleteUnitButton">🗑️</button>
-                <h3>${this._unit.name}<button id="editNameButton">📝</button></h3>
+                <h3>${this._unit.stats.keyword.icon} ${this._unit.name}<button id="editNameButton">📝</button></h3>
                 ${this._unit.stats.keyword != VEHICLE ? '<p>Campaign Unit: <input type="checkbox" id="campaignUnit"}/></p>' : ''}
                 ${this._unit.campaignUnit ? '<p>Inactive: <input type="checkbox" id="inactive"/> Skip next battle: <input type="checkbox" id="skipBattle"/>' : ''}
                 ${this._unit.campaignUnit ? '<p><button id="experienceButton">Add experience point</button><ul id="rankUpgrades"></ul> Experience points: ' + this._unit.experience + '. Rank: ' + this._unit.rank.rank + '</p>' : ''}

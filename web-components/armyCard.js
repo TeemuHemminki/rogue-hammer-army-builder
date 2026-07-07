@@ -136,7 +136,8 @@ export default class ArmyCard extends HTMLElement {
         const container = this.shadow.querySelector('#units');
         const points = this.shadow.querySelector('#points');
         points.innerText = this._army.calculateTotalPoints();
-        for (const unit of this._army.units) {
+        const displayUnits = this._army.units.sort((a, b) => a.stats.keyword.order - b.stats.keyword.order || a.name.localeCompare(b.name));
+        for (const unit of displayUnits) {
             let unitCard = document.createElement("unit-card");
             unitCard.unit = unit;
             container.append(unitCard);
