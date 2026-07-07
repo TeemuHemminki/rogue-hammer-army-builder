@@ -100,9 +100,10 @@ export default class ArmyCard extends HTMLElement {
             <select-unit-modal id="selectUnitModal"></select-unit-modal>
             <style>
                 #units{
-                    display: flex;
-                    max-width: 95%;
-                    flex-wrap: wrap;
+                    display: grid;
+                    width: 95vw;
+                    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                    gap: 1rem;
                 }
             </style>
             <h2>Army: ${this._army.name ? this._army.name + " (" + this._army.armyList.name + ")" : this._army.armyList.name} <button id="editNameButton">📝</button></h2>

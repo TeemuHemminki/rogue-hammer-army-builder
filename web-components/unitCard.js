@@ -52,7 +52,7 @@ class UnitCard extends HTMLElement {
             experienceUpgrade += !substat ? eu.statBonuses[stat] ?? null : eu.statBonuses?.[stat]?.[substat] ?? null;
         }
         for (let cr of this._unit.campaignRewards) {
-            if(!cr.activated){
+            if (!cr.activated) {
                 continue;
             }
             let reward = this._unit.getCampaignReward(cr);
@@ -78,8 +78,6 @@ class UnitCard extends HTMLElement {
                     position: relative;
                     border: 1px solid black;
                     padding: 5px;
-                    margin: 10px;
-                    width: 250px;
                 }
                 #card p{
                     margin: 10px;
@@ -94,107 +92,189 @@ class UnitCard extends HTMLElement {
                     right: 5px;
                     top: 5px;
                 }
+                #upgradeContainer{
+                    border: 1px solid black;
+                }
+                .specialRule{
+                    text-align: left;
+                }
+                table {
+                    table-layout: fixed;
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 3px;
+                }
+                caption{
+                    border: 1px solid black;
+                    color: #fefefe;
+                    background-color: #161616;
+                    margin-top:1px;
+                }
+                th, td {
+                    border: 1px solid black;
+                    text-align: center;
+                }
+                th {
+                    font-weight: bold;
+                    background-color: #aaaaaa !important;
+                }
+                table tr:nth-child(odd) {
+                    background-color: #e8e8e8;
+                }
             </style>
             <div id="card">
                 <button id="deleteUnitButton">🗑️</button>
                 <h3>${this._unit.stats.keyword.icon} ${this._unit.name}<button id="editNameButton">📝</button></h3>
-                ${this._unit.stats.keyword != VEHICLE ? '<p>Campaign Unit: <input type="checkbox" id="campaignUnit"}/></p>' : ''}
-                ${this._unit.campaignUnit ? '<p>Inactive: <input type="checkbox" id="inactive"/> Skip next battle: <input type="checkbox" id="skipBattle"/>' : ''}
-                ${this._unit.campaignUnit ? '<p><button id="experienceButton">Add experience point</button><ul id="rankUpgrades"></ul> Experience points: ' + this._unit.experience + '. Rank: ' + this._unit.rank.rank + '</p>' : ''}
-                <p>Move: ${this.getStat({ stat: "move", isMovement: true })}</p>
+                ${this._unit.stats.keyword != VEHICLE ?
+                    `<table>
+                        <caption>Campaign Unit <input type="checkbox" id="campaignUnit"/></caption>
+                        ${this._unit.campaignUnit 
+                        ? `<tr>
+                                <td>Inactive <input type="checkbox" id="inactive"/>
+                                </td><td>Skip battle <input type="checkbox" id="skipBattle"/></td>
+                            </tr>
+                            <tr>
+                                <td>${this._unit.experience}xp <button id="experienceButton">Add XP</button></td>
+                                <td>Rank: ${this._unit.rank.rank}</td>
+                            </tr>` : ''}
+                        </tbody>
+                    </table>` : ''}
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>Move</th>
+                            ${this._unit.stats.cohesion != null ? '<th>Cohesion</th>' : ''}
+                            <th>Points</th>
+                        </tr>
+                        <tr>
+                            <td>${this.getStat({ stat: "move", isMovement: true })}</td>
+                            ${this._unit.stats.cohesion != null ? '<td>' + this.getStat({ stat: "cohesion", isCohesion: true }) + '</td>' : ''}
+                            <td>${this.getStat({ stat: "points" })}</td>
+                        </tr>
+                    </tbody>
+                </table>
                 ${this._unit.stats.firepower != null
-                ? '<p>Firepower:<ul id="firepower"></ul></p>'
-                : ''
-            }
+                    ? '<table id="firepower"></table>'
+                    : ''
+                }
                 ${this._unit.stats.assault != null
-                ? '<p>Assault:<ul><li id="assault"></li></ul></p>'
-                : ''
-            }
-                ${this._unit.stats.cohesion != null
-                ? '<p>Cohesion: ' + this.getStat({ stat: "cohesion", isCohesion: true }) + '</p>'
-                : ''
-            }
+                    ? `<table>
+                        <tbody>
+                            <tr>
+                                <th>Assault</th>
+                                <th>A-T</th>
+                            </tr>
+                            <tr>
+                                <td>${this.getStat({ stat: "assault", substat: "modifier", isModifier: true })}</td>
+                                <td>${this.getStat({ stat: "assault", substat: "antiTank", isModifier: true })}</td>
+                            </tr>
+                        </tbody>
+                    </table>`
+                    : ''
+                }
                 ${this._unit.stats.armour != null
-                ? '<p>Armour:<ul><li>Front: ' + this.getStat({ stat: "armour", substat: "front" }) + '</li><li>Side: ' + this.getStat({ stat: "armour", substat: "side" }) + '</li><li>Rear: ' + this.getStat({ stat: "armour", substat: "rear" }) + '</li></ul></p>'
-                : ''
-            }
-                <p>Points: ${this.getStat({ stat: "points" })}</p>
-                <p>Composition: ${this._unit.stats.composition}</p>
+                    ? `<table>
+                        <caption>Armour</caption>
+                        <tbody>
+                            <tr>
+                                <th>Front</th>
+                                <th>Side</th>
+                                <th>Rear</th>
+                            </tr>
+                            <tr>
+                                <td>${this.getStat({ stat: "armour", substat: "front" })}</td>
+                                <td>${this.getStat({ stat: "armour", substat: "side" })}</td>
+                                <td>${this.getStat({ stat: "armour", substat: "rear" })}</td>
+                            </tr>
+                        </tbody>
+                    </table>`
+                    : ''
+                }
                 ${this._unit.stats.specialRules != null
-                ? '<p>Special Rules:<ul id="specialRules"></ul></p>'
-                : ''
-            }
-            ${this._unit.stats.psionicLevel != null ? '<p>Psionic Level: ' + this._unit.stats.psionicLevel + '. Powers list: <select id="selectPsionicPowerList"></select></p>' : ''}
-                ${this._unit.upgrade != null
-                ? '<p id="upgradeContainer"></p>' : ''
-            }
-                ${this._unit.experienceUpgrades.length > 0 ? '<p>Experience upgrades: <ul id="experienceUpgrades"></ul></p>' : ''}
-                ${this._unit.campaignRewards.length > 0 ? '<p>Campaign rewards: <ul id="campaignRewards"></ul></p>' : ''}
-                <button id="upgradeButton">Select upgrade</button>
+                    ? '<table id="specialRules"><caption>Special Rules</caption></table>'
+                    : ''
+                }
+                ${this._unit.stats.psionicLevel != null
+                    ? '<table><caption>Psionic Level ' + this._unit.stats.psionicLevel + '</caption><tr><td><select id="selectPsionicPowerList"></select></td></tr></table>' : ''}
+                ${this._unit.experienceUpgrades.length > 0 ? '<table id="experienceUpgrades"><caption>Experience upgrades</caption></table>' : ''}
+                ${this._unit.campaignRewards.length > 0 ? '<table id="campaignRewards"><caption>Campaign rewards</caption></table>' : ''}
+                <table id="upgradeContainer">
+                <caption>Upgrade</caption>
+                ${this._unit.upgrade ? `<tr><td><strong>${this._unit.upgrade.name}</strong>: ${this._unit.upgrade.description}</td></tr>` : ''}
+                <tr><td><button id="upgradeButton">Select upgrade</button></td></tr>
+                </table>
+                <p><i>${this._unit.stats.composition}</i></p>
+
             </div>
         `;
 
         if (this._unit.stats.firepower != null) {
             const firepowerContainer = this.shadow.querySelector('#firepower');
+            const header = firepowerContainer.createCaption().textContent = "Firepower";
+            const rowHeader = firepowerContainer.insertRow();
+            const firefightElement = rowHeader.insertCell().textContent = "9”";
+            const battleElement = rowHeader.insertCell().textContent = "24”";
+            const longElement = rowHeader.insertCell().textContent = "Lng";
+            const antiTankElement = rowHeader.insertCell().textContent = "A-T";
             for (let i = 0; i < this._unit.stats.firepower.length; i++) {
-                let fireMode = this._unit.stats.firepower[i];
-                let firepowerItem = document.createElement('li');
-                firepowerItem.innerText += fireMode.name != null ? fireMode.name + " - " : "";
-                firepowerItem.innerText += "Firefight: " + this.getStat({ stat: "firepower", substat: "firefight", index: i, isModifier: true }) + " | ";
-                firepowerItem.innerText += "Battle: " + this.getStat({ stat: "firepower", substat: "battle", index: i, isModifier: true }) + " | ";
-                firepowerItem.innerText += "Long: " + this.getStat({ stat: "firepower", substat: "long", index: i, isModifier: true }) + " | ";
-                firepowerItem.innerText += "Anti-Tank: " + this.getStat({ stat: "firepower", substat: "antiTank", index: i, isModifier: true });
-                firepowerContainer.append(firepowerItem);
+                let rowFireMode = firepowerContainer.insertRow();
+                let firefightCell = rowFireMode.insertCell();
+                firefightCell.textContent = this.getStat({ stat: "firepower", substat: "firefight", index: i, isModifier: true });
+                let battleCell = rowFireMode.insertCell();
+                battleCell.textContent = this.getStat({ stat: "firepower", substat: "battle", index: i, isModifier: true });
+                let longCell = rowFireMode.insertCell();
+                longCell.textContent = this.getStat({ stat: "firepower", substat: "long", index: i, isModifier: true });
+                let antiTankCell = rowFireMode.insertCell();
+                antiTankCell.textContent = this.getStat({ stat: "firepower", substat: "antiTank", index: i, isModifier: true });
             }
-        }
-
-        if (this._unit.stats.assault != null) {
-            const assaultContainer = this.shadow.querySelector('#assault');
-            assaultContainer.innerText += `Modifier: ${this.getStat({ stat: "assault", substat: "modifier", isModifier: true })} |`
-            assaultContainer.innerText += ` Anti-Tank: ${this.getStat({ stat: "assault", substat: "antiTank", isModifier: true })}`;
         }
 
         if (this._unit.stats.specialRules != null) {
             const specialRulesContainer = this.shadow.querySelector('#specialRules');
             for (const specialRule of this._unit.stats.specialRules) {
-                let specialRuleItem = document.createElement('li');
-                specialRuleItem.innerText = specialRule.name + ": " + specialRule.description;
-                specialRulesContainer.append(specialRuleItem);
+                let cell = specialRulesContainer.insertRow().insertCell();
+                cell.classList.add("specialRule");
+                let strong = document.createElement('strong');
+                strong.innerText = specialRule.name;
+                cell.append(strong);
+                cell.innerHTML += ": " + specialRule.description;
             }
         }
 
         if (this._unit.experienceUpgrades.length > 0) {
             const experienceUpgradesContainer = this.shadow.querySelector('#experienceUpgrades');
             for (const upgrade of this._unit.experienceUpgrades) {
-                let upgradeItem = document.createElement('li');
-                upgradeItem.innerText = upgrade.name + ": " + upgrade.description;
-                experienceUpgradesContainer.append(upgradeItem);
+                let cell = experienceUpgradesContainer.insertRow().insertCell();
+                cell.classList.add("specialRule");
+                let strong = document.createElement('strong');
+                strong.innerText = upgrade.name;
+                cell.append(strong);
+                cell.innerHTML += ": " + upgrade.description;
             }
         }
 
         if (this._unit.campaignRewards.length > 0) {
             const campaignRewardsContainer = this.shadow.querySelector('#campaignRewards');
             for (const reward of this._unit.campaignRewards) {
-                let rewardItem = document.createElement('li');
+                let cell = campaignRewardsContainer.insertRow().insertCell();
                 let rewardData = this._unit.getCampaignReward(reward);
-                rewardItem.innerText = `${rewardData.name}: ${rewardData.description}`;
-                campaignRewardsContainer.append(rewardItem);
-
+                cell.innerHTML = `<strong>${rewardData.name}</strong>: ${rewardData.description}`;
                 if (rewardData.activateable) {
-                    rewardItem.innerText += " Activated:";
+                    cell.innerHTML += " <strong>Activated</strong>";
                     let activateCampaignRewardCheckbox = document.createElement('input');
                     activateCampaignRewardCheckbox.type = 'checkbox';
                     activateCampaignRewardCheckbox.classList.add("activateCampaignReward");
                     activateCampaignRewardCheckbox.checked = reward.activated;
                     activateCampaignRewardCheckbox.reward = reward;
-                    rewardItem.append(activateCampaignRewardCheckbox);
+                    cell.append(activateCampaignRewardCheckbox);
+                    cell.innerHTML += " | ";
                 }
 
                 let deleteCampaignRewardButton = document.createElement('button');
                 deleteCampaignRewardButton.innerText = "🗑️";
                 deleteCampaignRewardButton.classList.add("deleteCampaignReward");
                 deleteCampaignRewardButton.reward = reward;
-                rewardItem.append(deleteCampaignRewardButton);
+                cell.append(deleteCampaignRewardButton);
             }
         }
 
@@ -216,11 +296,6 @@ class UnitCard extends HTMLElement {
                 }
                 selectPsionicPowerList.append(listOption);
             }
-        }
-
-        if (this._unit.upgrade != null) {
-            const upgradeContainer = this.shadow.querySelector('#upgradeContainer');
-            upgradeContainer.innerText += this._unit.upgrade.name + ':' + this._unit.upgrade.description;
         }
     }
 
