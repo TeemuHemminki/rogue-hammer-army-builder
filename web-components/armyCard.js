@@ -99,6 +99,9 @@ export default class ArmyCard extends HTMLElement {
             <upgrade-modal id="upgradeModal"></upgrade-modal>
             <select-unit-modal id="selectUnitModal"></select-unit-modal>
             <style>
+                #container{
+                    background-color: #cccccc;
+                }
                 #units{
                     display: grid;
                     width: 97vw;
@@ -110,9 +113,11 @@ export default class ArmyCard extends HTMLElement {
                 }
                 h2{
                     margin: 5px;
+                    text-align: center;
                 }
                 details{
                     width: 97vw;
+                    background-color: white;
                 }
                 details[open]{
                     border: 1px solid black;
@@ -132,6 +137,7 @@ export default class ArmyCard extends HTMLElement {
                     width: 99%;
                     border-collapse: collapse;
                     margin: auto;
+                    background-color: white;
                 }
                 caption{
                     border: 1px solid black;
@@ -151,7 +157,8 @@ export default class ArmyCard extends HTMLElement {
                     background-color: #bbbbbb;
                 }
             </style>
-            <h2>Army: ${this._army.name ? this._army.name + " (" + this._army.armyList.name + ")" : this._army.armyList.name} <button id="editNameButton">📝</button>            <button id="deleteArmyButton">🗑️</button>
+            <div id="container">
+            <h2>${this._army.name ? this._army.name + " (" + this._army.armyList.name + ")" : this._army.armyList.name} <button id="editNameButton">📝</button>            <button id="deleteArmyButton">🗑️</button>
             <button id="closeArmyButton">X</button></h2>
             <details id="validation"}><summary id="validationSummary"></summary></details>
             ${this._army.armyList.psionicPowers ?
@@ -165,6 +172,7 @@ export default class ArmyCard extends HTMLElement {
             <button id="addUnitButton">Add new Unit</button>
             <button id="rollCampaignRewardButton">Roll campaign reward</button> </p>
             <div id="units"></div>
+            </div>
         `;
 
         const validationElement = this.shadow.querySelector('#validation');

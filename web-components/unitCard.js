@@ -78,6 +78,7 @@ class UnitCard extends HTMLElement {
                     position: relative;
                     border: 1px solid black;
                     padding: 5px;
+                    background-color: white;
                 }
                 #card p{
                     margin: 10px;

@@ -74,6 +74,11 @@ export default class MainView extends HTMLElement {
                 }
                 p{
                     margin: 5px;
+                    padding: 3px;
+                    background-color: #cccccc
+                }
+                details{
+                    background-color: #cccccc
                 }
             </style>
             <army-modal id="armyModal"></army-modal>
