@@ -119,7 +119,7 @@ class UnitCard extends HTMLElement {
                     background-color: #aaaaaa !important;
                 }
                 table tr:nth-child(odd) {
-                    background-color: #e8e8e8;
+                    background-color: #bbbbbb;
                 }
             </style>
             <div id="card">

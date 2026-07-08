@@ -101,9 +101,51 @@ export default class ArmyCard extends HTMLElement {
             <style>
                 #units{
                     display: grid;
-                    width: 95vw;
+                    width: 97vw;
                     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                     gap: 1rem;
+                }
+                #armySpecialRules{
+                    width: 97vw;
+                }
+                details{
+                    width: 97vw;
+                }
+                details[open]{
+                    border: 1px solid black;
+                    margin: 3px;
+                }
+                summary {
+                    background-color: black;
+                    color: white;
+                    padding: 5px;
+                    margin: 3px;
+                }
+                details[open] summary {
+                    margin: 0px;
+                }
+                table {
+                    table-layout: fixed;
+                    width: 99%;
+                    border-collapse: collapse;
+                    margin: auto;
+                }
+                caption{
+                    border: 1px solid black;
+                    color: #fefefe;
+                    background-color: #161616;
+                    margin-top:1px;
+                }
+                th, td {
+                    border: 1px solid black;
+                    text-align: center;
+                }
+                th {
+                    font-weight: bold;
+                    background-color: #aaaaaa !important;
+                }
+                table tr:nth-child(odd) {
+                    background-color: #bbbbbb;
                 }
             </style>
             <h2>Army: ${this._army.name ? this._army.name + " (" + this._army.armyList.name + ")" : this._army.armyList.name} <button id="editNameButton">📝</button></h2>
@@ -113,7 +155,7 @@ export default class ArmyCard extends HTMLElement {
             <p>Total points: <span id="points"></span></p>
             <details id="validation"}><summary id="validationSummary"></summary></details>
             ${this._army.armyList.armySpecialRules ?
-                "<div id='armySpecialRules'></div>" : ""
+                "<table id='armySpecialRules'><caption>Army Special Rules</caption></table>" : ""
             }
             ${this._army.armyList.psionicPowers ?
                 "<details id='psionics'><summary id='psionicsSummary'>Psionic power lists</summary></details>" : ""
@@ -147,9 +189,8 @@ export default class ArmyCard extends HTMLElement {
         if(this._army.armyList.armySpecialRules){
             const armySpecialRulesElement = this.shadow.querySelector('#armySpecialRules');
             for(let specialRule of Object.entries(this._army.armyList.armySpecialRules)){
-                let specialRuleElement = document.createElement('p');
-                specialRuleElement.innerText = `${specialRule[1].name}: ${specialRule[1].description}`
-                armySpecialRulesElement.append(specialRuleElement);
+                let cell = armySpecialRulesElement.insertRow().insertCell();
+                cell.innerHTML = `<strong>${specialRule[1].name}</strong>: ${specialRule[1].description}`;
             }
         }
 
@@ -157,16 +198,15 @@ export default class ArmyCard extends HTMLElement {
             const psionicsElement = this.shadow.querySelector('#psionics');
             psionicsElement.open = this._army.psionicDetails;
             for(let psionicsList of Object.entries(this._army.armyList.psionicPowers)){
-                let listName = document.createElement('h4');
-                listName.innerText = psionicsList[1].name;
-                psionicsElement.append(listName);
-                let list = document.createElement('ul');
+                let listTable = document.createElement('table');
+                let listCaption = document.createElement('caption');
+                listCaption.innerText = psionicsList[1].name;
+                listTable.append(listCaption);
                 for(let psionicPower of Object.entries(psionicsList[1].powers)){
-                    let listEntry = document.createElement('li');
-                    listEntry.innerText = `${psionicPower[1].roll}: ${psionicPower[1].name} - ${psionicPower[1].description}`;
-                    list.append(listEntry);
+                    let cell = listTable.insertRow().insertCell();
+                    cell.innerHTML = `${psionicPower[1].roll} - ${psionicPower[1].name} - ${psionicPower[1].description}`;
                 }
-                psionicsElement.append(list);
+                psionicsElement.append(listTable);
             }
         }
 
