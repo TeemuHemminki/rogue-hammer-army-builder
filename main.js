@@ -105,6 +105,9 @@ class Main {
         for (let i = 0; i < openedArmiesSave.armies.length; i++) {
             let armyReference = openedArmiesSave.armies[i];
             let armySave = JSON.parse(localStorage.getItem(armyReference.uuid));
+            if(armySave == null){
+                continue; //TODO: This is hotfix for problem where new army is created, but no changes are made to it so it is not saved, but it is saved in "openedArmies" item.
+            }
             let army = new Army({ armyListIdentifier: armySave.armyListIdentifier, armyList: this._armyData[armySave.armyListIdentifier], saveData: armySave });
             this._armies.push(army);
             if (armyReference.uuid === openedArmiesSave.curArmyUUID) {

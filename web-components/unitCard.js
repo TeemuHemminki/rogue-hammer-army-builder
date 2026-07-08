@@ -129,7 +129,7 @@ class UnitCard extends HTMLElement {
                     font-weight: bold;
                     background-color: #aaaaaa !important;
                 }
-                table tr:nth-child(odd) {
+                table tr:nth-child(even) {
                     background-color: #bbbbbb;
                 }
             </style>
@@ -222,7 +222,7 @@ class UnitCard extends HTMLElement {
                 </table>
                
 
-                ${this._unit.stats.specialRules != null
+                ${this._unit.stats.specialRules.length > 0
                     ? '<table id="specialRules"><caption>Special Rules</caption></table>'
                     : ''
                 }

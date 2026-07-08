@@ -69,12 +69,23 @@ export default class MainView extends HTMLElement {
     render() {
         this.shadow.innerHTML = `
             <style>
+                h1{
+                    margin: 5px;
+                }
+                p{
+                    margin: 5px;
+                }
             </style>
             <army-modal id="armyModal"></army-modal>
             <h1>Rogue Hammer Army Builder</h1>
-            <button id="addArmyButton">Add New Army</button>
-            <button id="loadArmyButton">Load Saved Army</button>
-            <div id="openArmyTabs"></div>
+            <details>
+                <summary>Boring stuff</summary>
+                <p>This is a fan made army builder for <a href="https://www.wargamevault.com/product_reviews.php?products_id=418767">Rogue Hammer</a> by Ivan Sorensen / Nordic Weasel Games. Army list data used with permission.</p>
+                <p>Code repository is available at <a href="https://github.com/TeemuHemminki/rogue-hammer-army-builder">Github</a> and contributions (especially to army lists) are welcome.</p>
+                <p>On the use of LLM (or "AI"): Project doesn't use LLM generated code, but LLM coding assistant has been used for autofilling. LLM has also been used for evaluating ideas, design patterns and generally to get information of code. In short, this project is not "vibe coded", but it's creation is assisted by LLM</p>
+            </details>
+            <p> <button id="addArmyButton">Add New Army</button><button id="loadArmyButton">Load Saved Army</button> </p>
+            <p id="openArmyTabs">Loaded Army Lists: </p>
             <div id="armyCardHolder"></div>
         `;
 

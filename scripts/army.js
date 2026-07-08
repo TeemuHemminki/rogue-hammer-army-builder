@@ -83,7 +83,18 @@ export default class Army extends EventTarget {
         }
     }
 
-    calculateTotalPoints() {
+    calculateTotalPoints(){
+        let points = 0;
+        for(let unit of this._units){
+            points += unit.stats.points;
+            if(unit.upgrade){
+                points += unit.upgrade.statBonuses.points;
+            }
+        }
+        return points;
+    }
+
+    calculateActivePoints() {
         let points = 0;
         for (let unit of this._units) {
             if(unit.inactive){

@@ -108,6 +108,9 @@ export default class ArmyCard extends HTMLElement {
                 #armySpecialRules{
                     width: 97vw;
                 }
+                h2{
+                    margin: 5px;
+                }
                 details{
                     width: 97vw;
                 }
@@ -144,24 +147,23 @@ export default class ArmyCard extends HTMLElement {
                     font-weight: bold;
                     background-color: #aaaaaa !important;
                 }
-                table tr:nth-child(odd) {
+                table tr:nth-child(even) {
                     background-color: #bbbbbb;
                 }
             </style>
-            <h2>Army: ${this._army.name ? this._army.name + " (" + this._army.armyList.name + ")" : this._army.armyList.name} <button id="editNameButton">📝</button></h2>
-            <button id="addUnitButton">Add Unit</button>
-            <button id="deleteArmyButton">🗑️</button>
-            <button id="closeArmyButton">X</button>
-            <p>Total points: <span id="points"></span></p>
+            <h2>Army: ${this._army.name ? this._army.name + " (" + this._army.armyList.name + ")" : this._army.armyList.name} <button id="editNameButton">📝</button>            <button id="deleteArmyButton">🗑️</button>
+            <button id="closeArmyButton">X</button></h2>
             <details id="validation"}><summary id="validationSummary"></summary></details>
-            ${this._army.armyList.armySpecialRules ?
-                "<table id='armySpecialRules'><caption>Army Special Rules</caption></table>" : ""
-            }
             ${this._army.armyList.psionicPowers ?
                 "<details id='psionics'><summary id='psionicsSummary'>Psionic power lists</summary></details>" : ""
             }
-            <p id="armySpecialRules"></p>
-            <button id="rollCampaignRewardButton">Roll campaign reward</button>
+            ${this._army.armyList.armySpecialRules ?
+                "<table id='armySpecialRules'><caption>Army Special Rules</caption></table>" : ""
+            }
+            <p>Total points: <span id="totalPoints">0</span> | 
+            Active units points: <span id="points">0</span>
+            <button id="addUnitButton">Add new Unit</button>
+            <button id="rollCampaignRewardButton">Roll campaign reward</button> </p>
             <div id="units"></div>
         `;
 
@@ -177,8 +179,11 @@ export default class ArmyCard extends HTMLElement {
         });
 
         const container = this.shadow.querySelector('#units');
+
+        const totalPoints = this.shadow.querySelector('#totalPoints');
+        totalPoints.innerText = this._army.calculateTotalPoints();
         const points = this.shadow.querySelector('#points');
-        points.innerText = this._army.calculateTotalPoints();
+        points.innerText = this._army.calculateActivePoints();
         const displayUnits = this._army.units.sort((a, b) => a.stats.keyword.order - b.stats.keyword.order || a.name.localeCompare(b.name));
         for (const unit of displayUnits) {
             let unitCard = document.createElement("unit-card");
