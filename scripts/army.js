@@ -108,6 +108,18 @@ export default class Army extends EventTarget {
         return points;
     }
 
+    numberOfActiveUnits(){
+        let activeUnits = 0;
+        this.units.forEach(unit => {
+            activeUnits += unit.inactive ? 0 : 1;
+        })
+        return activeUnits;
+    }
+    
+    numberOfUnits(){
+        return this.units.length;
+    }
+
     addUnit(identifier, unitSave) {
         let unit;
         if (unitSave) {

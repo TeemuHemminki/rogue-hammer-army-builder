@@ -168,7 +168,8 @@ export default class ArmyCard extends HTMLElement {
                 "<table id='armySpecialRules'><caption>Army Special Rules</caption></table>" : ""
             }
             <p>Total points: <span id="totalPoints">0</span> | 
-            Active units points: <span id="points">0</span>
+            Active units points: <span id="points">0</span> |
+            Active units: <span id="activeUnits">${this._army.numberOfActiveUnits()}</span> / Total units: <span id="totalunits">${this._army.numberOfUnits()}</span> |
             <button id="addUnitButton">Add new Unit</button>
             <button id="rollCampaignRewardButton">Roll campaign reward</button> </p>
             <div id="units"></div>
