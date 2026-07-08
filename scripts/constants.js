@@ -137,6 +137,10 @@ const ARMY_SPECIAL_RULES = {
         selfRepair: {name:"Self Repair", description: "At the end of your player Phase, select any one Kill Bot squad and restore up to 2 points of lost Cohesion. Kill Bots cannot regain Cohesion in any other way, including by taking the Regroup Action."},
         distortionField: {name:"Distortion Field", description: "Non Kill Bot units within 6” of 1 or more Kill Bot units suffer a -1 penalty to hit when firing. The penalty is not cumulative"}
     },
+    spaceOrcs: {
+        disregardForPlanning: {name:"Disregard for Planning", description:"The army must assign 2 of their activations to units within 9” of enemy troops. Any remaining activations can then be used as the player sees fit."},
+        boostedEngine: {name:"Boosted Engine", description:"Light vehicles are given a random movement speed, rolled each time the vehicle moves. If the die is a 4, 5 or 6 the smoke and erratic movement causes the vehicle to shoot at a -1 hit penalty during the current activation. If the vehicle is intending to move twice, roll once and double the distance"}
+    },
     starKnights:{
         tacticalCoordination: {name:"Tactical Coordination", description: "Star Knights convert one partial activation to a full activation. For example in a normal game instead of 2 full and 2 limited activations, Star Knights would receive 3 full and 1 limited activation. The conversion can only be used in a turn where at least 2 Star Knight units are being activated."},
         environmentSuit: {name:"Environment Suit", description: "Not affected by Dangerous Terrain."}
@@ -179,13 +183,13 @@ const PSIONIC_POWERS_LIST = {
     },
     spaceOrcs: {
         name: "Space Orc Psionic Abilities",
-        powers: { //TODO: fill descriptions
-            powerShove: { roll: 1, name: "Power Shove", description: "" },
-            energyDissipation: { roll: 2, name: "Energy Dissipation", description: "" },
-            powerBolt: { roll: 3, name: "Power Bolt", description: "" },
-            brainEruption: { roll: 4, name: "Brain Eruption", description: "" },
-            struggleToThink: { roll: 5, name: "Struggle to think", description: "" },
-            waveOfEnergy: { roll: 6, name: "Wave of Energy", description: "" }
+        powers: {
+            powerShove: { roll: 1, name: "Power Shove", description: "Target unit is knocked directly away 1D6”. A vehicle is spun to face in a random direction instead. Infantry takes 1 point of damage." },
+            energyDissipation: { roll: 2, name: "Energy Dissipation", description: "The Psionic takes 1 point of damage. All non-Orc Psionics within line of sight (regardless of range) take 1 point of damage and cannot use any powers or duels in the players next turn." },
+            powerBolt: { roll: 3, name: "Power Bolt", description: "Roll to hit on 2D6 requiring a 6+. No hit modifiers are applied. Continue rolling to hit the same unit until you miss. Inflict 1 point of damage per hit scored. Vehicles take one AT+0 hit each time." },
+            brainEruption: { roll: 4, name: "Brain Eruption", description: "Roll 2D6. The lowest die is applied as damage to the Psionic, the highest die to the target." },
+            struggleToThink: { roll: 5, name: "Struggle to think", description: "The Psionic and the target Unit cannot activate during their respective next turns." },
+            waveOfEnergy: { roll: 6, name: "Wave of Energy", description: "Roll 2D6. Every enemy within this distance in inches takes 2 points of damage (AT +1 versus vehicles)." }
         }
     },
     starKnights: {
@@ -392,6 +396,71 @@ export const ARMY_LISTS = {
             }
         ]
     },
+    spaceOrcs: {
+        name: "Space Orcs (Grimdark)",
+        armySpecialRules: { disregardForPlanning: ARMY_SPECIAL_RULES.spaceOrcs.disregardForPlanning, orcishOrganisation: {name:"Orcish organisation", description: "Players who prefer a more “horde” look to their orcs can add 0-2 figures to each squad as they see fit. This does not modify the stats of the unit in any way."}, spaceOrcPsionics: {name: "Space Orc Psionics", description: "Space Orcs MUST use Space Orcs psionic table, they cannot use general psionic abilities. All Space Orc Psionic damage is Penetrating Damage (" + TRAITS.penetratingDamage.description + "). Orc Psionics always target the closest enemy unit and must use a power if an enemy is visible. You are not required to activate Psionic units however."}, boostedEngine: ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine },
+        psionicPowers: { spaceOrcs: PSIONIC_POWERS_LIST.spaceOrcs },
+        upgrades: {
+            ...GENERIC_UPGRADES,
+            bigOrc: { name: "Big Orc", keyword: SQUAD, statBonuses: { points: 2 }, description: "The squad adds +1 to Assault rolls when it is attacking (but not when defending)." },
+            ardLadz: { name: "Ard Ladz", keyword: SQUAD, statBonuses: { points: 1 }, description: "The squad gains Damage Mitigation: " + TRAITS.damageMitigation.description },
+            mek: { name: "Mek", keyword: SQUAD, statBonuses: { assault:{antiTank: 1}, points: 2 }, description: "If the squad does not have an assault anti tank value, it receives a +0. If it has an assault anti tank value, it is increased by 1." }, //TODO: Handle granting of stat
+            bigBanner: { name: "bigBanner", keyword: SQUAD, statBonuses: { points: 5 }, description: "The Unit gains the Leadership trait: " + TRAITS.leadership.description },
+            extraShooty: { name: "Extra Shooty", keyword: SQUAD, statBonuses: { points: 2 }, description: "The squad gains Anti Personnel up to 24” range: " + TRAITS.antiPersonnel.description },
+            goblinAssistant: { name: "Goblin Assistant", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Each time the character shoots or fights in Close Combat roll 1D6. On a 1 the character rolls at a -1 penalty, on a 5-6 roll at a +1 bonus. If the character loses a Close Combat round, the Assistants are killed." },
+            megaCrushArm: { name: "Mega Crush Arm", keyword: INDIVIDUAL, statBonuses: { assault:{antiTank:1}, points: 2 }, description: "Add +1 to Close Combat Anti Tank. Close Combat attacks are Penetrating Damage: " + TRAITS.penetratingDamage.description },
+            customGun: { name: "Custom Gun", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "You may reroll one die each time you shoot, however if a hit roll is a double 1 before or after rerolling, the weapon explodes: The character takes 2 points of damage and cannot shoot for the rest of the game." },
+            stateOfTheOrcCybernetics: { name: "State of the Orc Cybernetics", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: `Gain Damage Mitigation (${TRAITS.damageMitigation.description}), Limited Intelligence (${TRAITS.limitedIntelligence.description}) and Simple Minded (${TRAITS.simpleMinded.description}).` },
+            bigOleBomb: { name: "Big Ole Bomb", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `Usable once per battle as a ranged attack. Requires a Fire action. Attacks up to 9” with +2 Firepower, High Explosive (${TRAITS.highExplosive.description}) and +3 Anti Tank.` },
+            superFastGuns: { name: "Super Fast Guns", keyword: VEHICLE, statBonuses: { firepower: {firefight: 1, battle: -1, long: -1}, assault:{modifier:1}, points: 1 }, description: "Light Vehicles only. Increase 9” Firepower by 1. Reduce 24” and Long Firepower by 1. Close Combat is increased by +1" }, //TODO: Make upgrade available only for light vehicles
+            somewhatArmouredCompartment: { name: "Somewhat Armoured Compartment", keyword: VEHICLE, statBonuses: { cohesion: 1, points: 2 }, description: "Light vehicles only. Cohesion +1" }, //TODO: Make upgrade available only for light vehicles 
+            goblinRiders: { name: "Goblin Riders", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Light vehicles only. If the vehicle is destroyed, replace it with a Goblin Squad." },//TODO: Make upgrade available only for light vehicles 
+            extraBigGrabbyClaw: { name: "Extra Big Grabby Claw", keyword: VEHICLE, statBonuses: { assault: {antiTank: 2}, points: 2 }, description: "Walkers only. Close Combat Anti Tank is increased by 2." }, //TODO Make upgrade available only for walkers
+            powerShield: { name: "Power Shield", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Walkers only. Activates when taking a hit with AT +0 or greater. Roll 1D6 for each hit. On a 5-6 the hit is negated completely. On a 2-4 nothing happens. On a 1 the walker is paralysed and cannot be activated next Orc turn." },//TODO Make upgrade available only for walkers
+            overchargedLaser: { name: "Overcharged Laser", keyword: VEHICLE, statBonuses: { points: 2 }, description: "When shooting at Armoured vehicles, add 2 to Anti Tank but reduce Firepower by 1." },//TODO Make upgrade available only for walkers
+            boltedOnJunk: { name: "Bolted On Junk", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Armoured vehicles only. The first damage result the vehicle suffers from any source is ignored." }, //Make upgrade available only for armoured vehicles
+            slimmedDownArmour: { name: "Slimmed Down Armour", keyword: VEHICLE, statBonuses: { move: 3, armour:{side: -1, rear: -1}, points: 1 }, description: "Armoured vehicles only. Reduce Flank and Side Armour by 1 point each. Increase Speed by +3”." },//Make upgrade available only for armoured vehicles
+            hugePileOfAmmo: { name: "Huge Pile Of Ammo", keyword: VEHICLE, statBonuses: { points: 2 }, description: `Armoured vehicles only. Gain Anti Personnel (${TRAITS.antiPersonnel.description}). If the vehicle is Knocked Out, it is always treated as Catastrophic Damage.` }//Make upgrade available only for armoured vehicles
+        },
+        units: {
+            goblins: { name: "Goblins", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 5, points: 5, composition: "8 figures", specialRules: [{name:"Distracting", description:"Enemies withn 9” of goblins cannot fire at a more distant target."},TRAITS.agile] }
+            //TODO: Add armoured vehicle and field artillery special rules, add rest of the units.
+        },
+        validator: [
+            {
+                description: "You must take at least one Individual with Boss in their title.",
+                validate: units => {
+                    units.forEach(unit => {
+                        if(unit.stats.keyword === INDIVIDUAL && unit.stats.name.includes("Boss")){
+                            return true;
+                        }
+                    })
+                    return false;
+                }
+            },
+            {
+                description: "You may take up to 1 Individual per Squad.",
+                validate: units => {
+                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                    return individuals.length <= squads.length;
+                }
+            },
+            {
+                description: "For every Squad you may take up to 1 supporting unit (a Light Vehicle, Walker or Field Artillery unit). Armoured Vehicles count as 2 supporting units.",
+                validate: units => {
+                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+                    let armoredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.armour != null && !unit.stats.specialRules.includes(TRAITS.walker));
+                    let otherSupportUnits = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.cohesion != null || unit.stats.specialRules.includes(TRAITS.walker) || unit.stats.keyword === FIELD_ARTILLERY);
+                    let totalSupportUnits = armoredVehicles.length * 2 + otherSupportUnits.length;
+
+                    return totalSupportUnits <= squads.length;
+                }
+            }
+        ]
+    },
+
     starKnights: {
         name: "Star Knights (Grimdark)",
         armySpecialRules: { tacticalCoordination: ARMY_SPECIAL_RULES.starKnights.tacticalCoordination, environmentSuit: ARMY_SPECIAL_RULES.starKnights.environmentSuit, imperials: ARMY_SPECIAL_RULES.imperials.imperials }, //TODO: How to handle Star Knight variants
