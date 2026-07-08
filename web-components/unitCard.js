@@ -95,14 +95,25 @@ class UnitCard extends HTMLElement {
                 #upgradeContainer{
                     border: 1px solid black;
                 }
+                #statLine{
+                }
+                #statLine tr{
+                    background-color: white;
+                }
+                #statLine > tbody > tr > td{
+                    border: none;
+                    padding: 0;
+                    vertical-align: top;
+                }
                 .specialRule{
                     text-align: left;
                 }
+                .hidden{
+                    visibility: hidden;
+                }
                 table {
-                    table-layout: fixed;
                     width: 100%;
                     border-collapse: collapse;
-                    margin: 3px;
                 }
                 caption{
                     border: 1px solid black;
@@ -139,29 +150,31 @@ class UnitCard extends HTMLElement {
                             </tr>` : ''}
                         </tbody>
                     </table>` : ''}
-                <table>
-                    <tbody>
-                        <tr>
-                            <th>Move</th>
-                            ${this._unit.stats.cohesion != null ? '<th>Cohesion</th>' : ''}
-                            <th>Points</th>
-                        </tr>
-                        <tr>
-                            <td>${this.getStat({ stat: "move", isMovement: true })}</td>
-                            ${this._unit.stats.cohesion != null ? '<td>' + this.getStat({ stat: "cohesion", isCohesion: true }) + '</td>' : ''}
-                            <td>${this.getStat({ stat: "points" })}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                ${this._unit.stats.firepower != null
-                    ? '<table id="firepower"></table>'
+                <table id="statLine">
+                    <tr>
+                    <td>
+                    <table>
+                        <caption class="hidden">...</caption>
+                        <tbody>
+                            <tr>
+                                <th>Mov</th>
+                            </tr>
+                            <tr>
+                                <td>${this.getStat({ stat: "move", isMovement: true })}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </td>
+                    ${this._unit.stats.firepower != null
+                    ? '<td><table id="firepower"></table></td>'
                     : ''
                 }
                 ${this._unit.stats.assault != null
-                    ? `<table>
+                    ? `<td><table>
+                        <caption>Assault</caption>
                         <tbody>
                             <tr>
-                                <th>Assault</th>
+                                <th>Mod</th>
                                 <th>A-T</th>
                             </tr>
                             <tr>
@@ -169,17 +182,17 @@ class UnitCard extends HTMLElement {
                                 <td>${this.getStat({ stat: "assault", substat: "antiTank", isModifier: true })}</td>
                             </tr>
                         </tbody>
-                    </table>`
+                    </table></td>`
                     : ''
                 }
-                ${this._unit.stats.armour != null
-                    ? `<table>
+                    ${this._unit.stats.armour != null
+                    ? `<td><table>
                         <caption>Armour</caption>
                         <tbody>
                             <tr>
-                                <th>Front</th>
-                                <th>Side</th>
-                                <th>Rear</th>
+                                <th>Fr</th>
+                                <th>Si</th>
+                                <th>Re</th>
                             </tr>
                             <tr>
                                 <td>${this.getStat({ stat: "armour", substat: "front" })}</td>
@@ -187,9 +200,28 @@ class UnitCard extends HTMLElement {
                                 <td>${this.getStat({ stat: "armour", substat: "rear" })}</td>
                             </tr>
                         </tbody>
-                    </table>`
+                    </table></td>`
                     : ''
                 }
+                <td>
+                    <table>
+                        <caption class="hidden">...</caption>
+                        <tbody>
+                            <tr>
+                                ${this._unit.stats.cohesion != null ? '<th>Coh</th>' : ''}
+                                <th>Pts</th>
+                            </tr>
+                            <tr>
+                                ${this._unit.stats.cohesion != null ? '<td>' + this.getStat({ stat: "cohesion", isCohesion: true }) + '</td>' : ''}
+                                <td>${this.getStat({ stat: "points" })}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </td>
+                    </tr>
+                </table>
+               
+
                 ${this._unit.stats.specialRules != null
                     ? '<table id="specialRules"><caption>Special Rules</caption></table>'
                     : ''
@@ -203,7 +235,7 @@ class UnitCard extends HTMLElement {
                 ${this._unit.upgrade ? `<tr><td><strong>${this._unit.upgrade.name}</strong>: ${this._unit.upgrade.description}</td></tr>` : ''}
                 <tr><td><button id="upgradeButton">Select upgrade</button></td></tr>
                 </table>
-                <p><i>${this._unit.stats.composition}</i></p>
+                <p>Composition: <i>${this._unit.stats.composition}</i></p>
 
             </div>
         `;
@@ -212,10 +244,18 @@ class UnitCard extends HTMLElement {
             const firepowerContainer = this.shadow.querySelector('#firepower');
             const header = firepowerContainer.createCaption().textContent = "Firepower";
             const rowHeader = firepowerContainer.insertRow();
-            const firefightElement = rowHeader.insertCell().textContent = "9”";
-            const battleElement = rowHeader.insertCell().textContent = "24”";
-            const longElement = rowHeader.insertCell().textContent = "Lng";
-            const antiTankElement = rowHeader.insertCell().textContent = "A-T";
+            const fireFightElement = document.createElement('th');
+            fireFightElement.textContent = "9”";
+            rowHeader.append(fireFightElement);
+            const battleElement = document.createElement('th');
+            battleElement.textContent = "24”";
+            rowHeader.append(battleElement);
+            const longElement = document.createElement('th');
+            longElement.textContent = "Lng";
+            rowHeader.append(longElement);
+            const antiTankElement = document.createElement('th');
+            antiTankElement.textContent = "A-T";
+            rowHeader.append(antiTankElement);
             for (let i = 0; i < this._unit.stats.firepower.length; i++) {
                 let rowFireMode = firepowerContainer.insertRow();
                 let firefightCell = rowFireMode.insertCell();

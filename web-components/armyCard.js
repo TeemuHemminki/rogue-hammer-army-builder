@@ -102,7 +102,7 @@ export default class ArmyCard extends HTMLElement {
                 #units{
                     display: grid;
                     width: 97vw;
-                    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
                     gap: 1rem;
                 }
                 #armySpecialRules{
