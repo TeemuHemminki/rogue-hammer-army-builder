@@ -139,7 +139,9 @@ const ARMY_SPECIAL_RULES = {
     },
     spaceOrcs: {
         disregardForPlanning: {name:"Disregard for Planning", description:"The army must assign 2 of their activations to units within 9” of enemy troops. Any remaining activations can then be used as the player sees fit."},
-        boostedEngine: {name:"Boosted Engine", description:"Light vehicles are given a random movement speed, rolled each time the vehicle moves. If the die is a 4, 5 or 6 the smoke and erratic movement causes the vehicle to shoot at a -1 hit penalty during the current activation. If the vehicle is intending to move twice, roll once and double the distance"}
+        boostedEngine: {name:"Boosted Engine", description:"Light vehicles are given a random movement speed, rolled each time the vehicle moves. If the die is a 4, 5 or 6 the smoke and erratic movement causes the vehicle to shoot at a -1 hit penalty during the current activation. If the vehicle is intending to move twice, roll once and double the distance"},
+        ramshackle: {name:"Ramshackle", description:"Whenever an Orc Armoured vehicle attempts to move it must roll 1D6. On a roll of a 1 it is unable to move during that activation. This does not affect any other activities. If the unit wants to double move, roll for each move separately which can result in the unit moving once, twice or not at all. This rule does not apply to Walkers (Orcs are good at building walkers since they already understand how legs work) and Light Vehicles (Orcs appreciate speed)"},
+        goblinMalfunction: { name:"Goblin Malfunction", description:"Orc Field artillery rolling a double 1 to hit when firing is destroyed with no effect on the target. This effect cannot be prevented or avoided."}
     },
     starKnights:{
         tacticalCoordination: {name:"Tactical Coordination", description: "Star Knights convert one partial activation to a full activation. For example in a normal game instead of 2 full and 2 limited activations, Star Knights would receive 3 full and 1 limited activation. The conversion can only be used in a turn where at least 2 Star Knight units are being activated."},
@@ -208,7 +210,7 @@ const PSIONIC_POWERS_LIST = {
 export const ARMY_LISTS = {
     imperialLegion: {
         name: "Imperial Legion (Grimdark)",
-        armySpecialRules: { holdTheGround: ARMY_SPECIAL_RULES.imperialLegion.holdTheGround, imperials: ARMY_SPECIAL_RULES.imperials.imperials },
+        armySpecialRules: { ...ARMY_SPECIAL_RULES.imperialLegion, imperials: ARMY_SPECIAL_RULES.imperials.imperials },
         psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, imperialLegion: PSIONIC_POWERS_LIST.imperialLegion },
         upgrades: {
             ...GENERIC_UPGRADES,
@@ -305,7 +307,7 @@ export const ARMY_LISTS = {
     },
     crawlerHorde: {
         name: "The Crawler Hordes (Grimdark)",
-        armySpecialRules: { acidSpray: ARMY_SPECIAL_RULES.crawlerHorde.acidSpray, alienAnatomy: ARMY_SPECIAL_RULES.crawlerHorde.alienAnatomy, inhuman: ARMY_SPECIAL_RULES.crawlerHorde.inhuman },
+        armySpecialRules: { ...ARMY_SPECIAL_RULES.crawlerHorde },
         psionicPowers: { crawlerHorde: PSIONIC_POWERS_LIST.crawlerHorde },
         upgrades: {
             searingChemicals: { name: "Searing Chemicals", keyword: SQUAD, statBonuses: { points: 2 }, description: "Gain the Flame Weapon Trait up to 9”: " + TRAITS.flameWeapon.description + " No effect if the unit lacks ranged attacks." },
@@ -349,7 +351,7 @@ export const ARMY_LISTS = {
     },
     killBots: {
         name: "Killbots (Grimdark)",
-        armySpecialRules: { selfRepair: ARMY_SPECIAL_RULES.killBots.selfRepair, distortionField: ARMY_SPECIAL_RULES.killBots.distortionField, noPsionics: {name: "No psionics", description: "Kill Bots cannot use Psionics under any circumstances"} },
+        armySpecialRules: { ...ARMY_SPECIAL_RULES.killBots, noPsionics: {name: "No psionics", description: "Kill Bots cannot use Psionics under any circumstances"} },
         psionicPowers: { },
         upgrades: {
             repeatingGaussRifle: { name: "Repeating Gauss Rifle", keyword: SQUAD, statBonuses: { points: 1 }, description: "Add Anti Personnel trait: " + TRAITS.antiPersonnel.description },
@@ -398,7 +400,7 @@ export const ARMY_LISTS = {
     },
     spaceOrcs: {
         name: "Space Orcs (Grimdark)",
-        armySpecialRules: { disregardForPlanning: ARMY_SPECIAL_RULES.spaceOrcs.disregardForPlanning, orcishOrganisation: {name:"Orcish organisation", description: "Players who prefer a more “horde” look to their orcs can add 0-2 figures to each squad as they see fit. This does not modify the stats of the unit in any way."}, spaceOrcPsionics: {name: "Space Orc Psionics", description: "Space Orcs MUST use Space Orcs psionic table, they cannot use general psionic abilities. All Space Orc Psionic damage is Penetrating Damage (" + TRAITS.penetratingDamage.description + "). Orc Psionics always target the closest enemy unit and must use a power if an enemy is visible. You are not required to activate Psionic units however."}, boostedEngine: ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine },
+        armySpecialRules: { ...ARMY_SPECIAL_RULES.spaceOrcs, orcishOrganisation: {name:"Orcish organisation", description: "Players who prefer a more “horde” look to their orcs can add 0-2 figures to each squad as they see fit. This does not modify the stats of the unit in any way."}, spaceOrcPsionics: {name: "Space Orc Psionics", description: "Space Orcs MUST use Space Orcs psionic table, they cannot use general psionic abilities. All Space Orc Psionic damage is Penetrating Damage (" + TRAITS.penetratingDamage.description + "). Orc Psionics always target the closest enemy unit and must use a power if an enemy is visible. You are not required to activate Psionic units however."} },
         psionicPowers: { spaceOrcs: PSIONIC_POWERS_LIST.spaceOrcs },
         upgrades: {
             ...GENERIC_UPGRADES,
@@ -423,18 +425,39 @@ export const ARMY_LISTS = {
             hugePileOfAmmo: { name: "Huge Pile Of Ammo", keyword: VEHICLE, statBonuses: { points: 2 }, description: `Armoured vehicles only. Gain Anti Personnel (${TRAITS.antiPersonnel.description}). If the vehicle is Knocked Out, it is always treated as Catastrophic Damage.` }//Make upgrade available only for armoured vehicles
         },
         units: {
-            goblins: { name: "Goblins", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 5, points: 5, composition: "8 figures", specialRules: [{name:"Distracting", description:"Enemies withn 9” of goblins cannot fire at a more distant target."},TRAITS.agile] }
-            //TODO: Add armoured vehicle and field artillery special rules, add rest of the units.
+            goblins: { name: "Goblins", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 5, points: 5, composition: "8 figures", specialRules: [{name:"Distracting", description:"Enemies withn 9” of goblins cannot fire at a more distant target."},TRAITS.agile] },
+            venomBitesSquad: { name: "Venom Bites Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 9, composition: "6 figures", specialRules: [] },
+            angrySunSquad: { name: "Angry Sun Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 8, composition: "6 figures", specialRules: [] },
+            goreHammerSquad: { name: "Gore Hammer Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [{name:"Cunning", description: "Gore Hammer and Kommando units are not counted for the purpose of the Disregard for Planning army rule."}] },
+            gruntzSquad: { name: "Gruntz Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [] },
+            primitiveWarband: { name: "Primitive Warband", keyword: SQUAD, move: 6, assault: { modifier: 3, antiTank: null }, cohesion: 8, points: 8, composition: "6 figures", specialRules: [] },
+            goreHammerKommandos: { name: "Gore Hammer Kommandos", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 2 }, cohesion: 9, points: 11, composition: "5 figures", specialRules: [TRAITS.infiltration, {name:"Cunning", description: "Gore Hammer and Kommando units are not counted for the purpose of the Disregard for Planning army rule."}] },
+            tankBreakies: { name: "Tank Breakies", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: -1, antiTank: +1 }], assault: { modifier: 2, antiTank: 2 }, cohesion: 8, points: 10, composition: "5 figures with 2 heavy weapons", specialRules: [] },
+            burners: { name: "Burners", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 10, composition: "5 figures with 2 flame weapons", specialRules: [TRAITS.flameWeapon] },
+            stormSquad: { name: "Storm Squad", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 11, composition: "5 figures", specialRules: [TRAITS.jump, {name:"Temperamental equipment", description:"Each time the unit activates roll 1D6. On a 1 they lose 1 Cohesion."}] },
+            orcatics: { name: "Orcatics", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 7, composition: "6 figures", specialRules: [TRAITS.erratic, TRAITS.specialist] },
+            bombBeasts: { name: "Bomb beasts", keyword: SQUAD, move: "random", assault: { modifier: 1, antiTank: null }, cohesion: 6, points: 7, composition: "???", specialRules: [{name:"Bomb run", description:"When activated, squad can only take a move action. Roll 1D6. On any roll but a 1 they move that many inches towards the closest visible enemy unit. On a 1 they instead move 1D6” towards the nearest unit regardless of sides."},{name:"Blow up", description:"If at any point during the bomb beasts activation they are within 2” of an enemy they are destroyed. The enemy takes damage equal to the remaining Cohesion of the beast. Vehicles take one hit per Cohesion point with +0 AT"}] },
+            oinkers: { name: "Oinkers", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 10, composition: "5 mounted figures", specialRules: [TRAITS.cavalry] },
+            grimMoonSquad: { name: "Grim Moon Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 12, composition: "5 figures with 2 heavy weapons", specialRules: [] },
+            doomSkullzSquad: { name: "Doom Skullz Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 2, long: 0, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 14, composition: "5 figures with 3 heavy weapons", specialRules: [{name:"Custom Guns", description:"Any hit roll that rolls doubles inflicts 1 point of Penetrating Damage ("+TRAITS.penetratingDamage.description+") on both firer and target. This is in addition to any damage inflicted by the attack otherwise and applies even if the shot missed"}] },
+            orcElites: { name: "Orc Elites", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: 1 }], assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 12, composition: "5 figures", specialRules: [] },
+            megaSquad: { name: "Mega Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 8, points: 14, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
+            boss: { name: "Boss", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 1 }, cohesion: 8, points: 10, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero]},
+            //TODO: Rest of orc individuals
+			psiOrc: { name: "Psi-Orc", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 13, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.psionic, {name:"Unstable", description: " Each time the Psi-orc is activated roll 2D6. On a double 1 the unit is destroyed as the Psi-orc has a fatal meltdown."}], psionicLevel: 2, psionicLists: [PSIONIC_POWERS_LIST.spaceOrcs] },
+            //TODO: orc light vehicles, rest of walkers, field_artillery and armoured_vehicles
+            superKillStomper: { name: "Super Kill Stomper", keyword: VEHICLE, move: 5, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: null }, { firefight: 1, battle: 0, long: 0, antiTank: 1 }], assault:{modifier: 4, antiTank: 1}, armour: { front: 9, side: 7, rear: 7 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] }
         },
         validator: [
             {
                 description: "You must take at least one Individual with Boss in their title.",
                 validate: units => {
-                    units.forEach(unit => {
+                    for(let i = 0; i < units.length; i++){
+                        let unit = units[i];
                         if(unit.stats.keyword === INDIVIDUAL && unit.stats.name.includes("Boss")){
                             return true;
                         }
-                    })
+                    }
                     return false;
                 }
             },
@@ -463,7 +486,7 @@ export const ARMY_LISTS = {
 
     starKnights: {
         name: "Star Knights (Grimdark)",
-        armySpecialRules: { tacticalCoordination: ARMY_SPECIAL_RULES.starKnights.tacticalCoordination, environmentSuit: ARMY_SPECIAL_RULES.starKnights.environmentSuit, imperials: ARMY_SPECIAL_RULES.imperials.imperials }, //TODO: How to handle Star Knight variants
+        armySpecialRules: { ...ARMY_SPECIAL_RULES.starKnights, imperials: ARMY_SPECIAL_RULES.imperials.imperials }, //TODO: How to handle Star Knight variants
         psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, starKnights: PSIONIC_POWERS_LIST.starKnights },
         upgrades: {
             ...GENERIC_UPGRADES,
