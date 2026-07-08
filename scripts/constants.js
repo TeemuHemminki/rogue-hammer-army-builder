@@ -461,9 +461,9 @@ export const ARMY_LISTS = {
                     let vehiclesAndFieldArtillery = armoredVehicles.length + unarmouredVehicles.length + fieldArtillery.length;
 
                     if(unarmouredVehicles.length > 0 || fieldArtillery.length > 0){
-                        return vehiclesAndFieldArtillery < squads;
+                        return vehiclesAndFieldArtillery < squads.length;
                     }
-                        return armoredVehicles <= squads;
+                    return armoredVehicles.length <= squads.length;
                 }
             },
             {
