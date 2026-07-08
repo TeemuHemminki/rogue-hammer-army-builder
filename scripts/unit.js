@@ -171,7 +171,7 @@ export default class Unit extends EventTarget{
         let roll = Math.floor(Math.random()*6 + 1);
         let upgrade = rankRolls[roll];
         if(upgrade.statBonuses.firepower){
-            if(this._stats.firepower === null){
+            if(!this._stats.firepower){
                 //If not applicable, let's just roll again by recursing this function
                 return this.addRankUpgrade();
             }
