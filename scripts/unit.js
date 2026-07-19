@@ -47,6 +47,10 @@ export default class Unit extends EventTarget{
         this._psionicPowerListIndex = unitSave.psionicPowerListIndex;
     }
 
+    get identifier(){
+        return this._identifier;
+    }
+
     get stats(){
         return this._stats;
     }

@@ -88,6 +88,11 @@ class UnitCard extends HTMLElement {
                     margin: 5px;
                     padding: 0 0 0 20px;
                 }
+                #cloneUnitButton {
+                    position: absolute;
+                    right: 50px;
+                    top: 5px;
+                }
                 #deleteUnitButton {
                     position: absolute;
                     right: 5px;
@@ -135,13 +140,14 @@ class UnitCard extends HTMLElement {
                 }
             </style>
             <div id="card">
+                <button id="cloneUnitButton">👥</button>
                 <button id="deleteUnitButton">🗑️</button>
                 <h3>${this._unit.stats.keyword.icon} ${this._unit.name}<button id="editNameButton">📝</button></h3>
                 ${this._unit.stats.keyword != VEHICLE ?
-                    `<table>
+                `<table>
                         <caption>Campaign Unit <input type="checkbox" id="campaignUnit"/></caption>
-                        ${this._unit.campaignUnit 
-                        ? `<tr>
+                        ${this._unit.campaignUnit
+                    ? `<tr>
                                 <td>Inactive <input type="checkbox" id="inactive"/>
                                 </td><td>Skip battle <input type="checkbox" id="skipBattle"/></td>
                             </tr>
@@ -167,11 +173,11 @@ class UnitCard extends HTMLElement {
                     </table>
                     </td>
                     ${this._unit.stats.firepower != null
-                    ? '<td><table id="firepower"></table></td>'
-                    : ''
-                }
+                ? '<td><table id="firepower"></table></td>'
+                : ''
+            }
                 ${this._unit.stats.assault != null
-                    ? `<td><table>
+                ? `<td><table>
                         <caption>Assault</caption>
                         <tbody>
                             <tr>
@@ -184,10 +190,10 @@ class UnitCard extends HTMLElement {
                             </tr>
                         </tbody>
                     </table></td>`
-                    : ''
-                }
+                : ''
+            }
                     ${this._unit.stats.armour != null
-                    ? `<td><table>
+                ? `<td><table>
                         <caption>Armour</caption>
                         <tbody>
                             <tr>
@@ -202,8 +208,8 @@ class UnitCard extends HTMLElement {
                             </tr>
                         </tbody>
                     </table></td>`
-                    : ''
-                }
+                : ''
+            }
                 <td>
                     <table>
                         <caption class="hidden">...</caption>
@@ -224,11 +230,11 @@ class UnitCard extends HTMLElement {
                
 
                 ${this._unit.stats.specialRules.length > 0
-                    ? '<table id="specialRules"><caption>Special Rules</caption></table>'
-                    : ''
-                }
+                ? '<table id="specialRules"><caption>Special Rules</caption></table>'
+                : ''
+            }
                 ${this._unit.stats.psionicLevel != null
-                    ? '<table><caption>Psionic Level ' + this._unit.stats.psionicLevel + '</caption><tr><td><select id="selectPsionicPowerList"></select></td></tr></table>' : ''}
+                ? '<table><caption>Psionic Level ' + this._unit.stats.psionicLevel + '</caption><tr><td><select id="selectPsionicPowerList"></select></td></tr></table>' : ''}
                 ${this._unit.experienceUpgrades.length > 0 ? '<table id="experienceUpgrades"><caption>Experience upgrades</caption></table>' : ''}
                 ${this._unit.campaignRewards.length > 0 ? '<table id="campaignRewards"><caption>Campaign rewards</caption></table>' : ''}
                 <table id="upgradeContainer">
@@ -245,7 +251,7 @@ class UnitCard extends HTMLElement {
             const firepowerContainer = this.shadow.querySelector('#firepower');
             const header = firepowerContainer.createCaption().textContent = "Firepower";
             const rowHeader = firepowerContainer.insertRow();
-            if(this._unit.stats.firepower[0].type){
+            if (this._unit.stats.firepower[0].type) {
                 const typeElement = document.createElement('th');
                 typeElement.textContent = "Typ";
                 rowHeader.append(typeElement);
@@ -264,7 +270,7 @@ class UnitCard extends HTMLElement {
             rowHeader.append(antiTankElement);
             for (let i = 0; i < this._unit.stats.firepower.length; i++) {
                 let rowFireMode = firepowerContainer.insertRow();
-                if(this._unit.stats.firepower[i].type){
+                if (this._unit.stats.firepower[i].type) {
                     let typeCell = rowFireMode.insertCell().textContent = this._unit.stats.firepower[i].type;
                 }
                 let firefightCell = rowFireMode.insertCell();
@@ -370,9 +376,23 @@ class UnitCard extends HTMLElement {
             )
         }
 
-        if (event.target.matches('#removeUpgradeButton')){
-            if(confirm("Remove upgrade from this unit?")){
+        if (event.target.matches('#removeUpgradeButton')) {
+            if (confirm("Remove upgrade from this unit?")) {
                 this._unit.unassignUpgrade();
+            }
+        }
+
+        if (event.target.matches('#cloneUnitButton')) {
+            if (confirm("Duplicate this unit?")) {
+                this.dispatchEvent(
+                    new CustomEvent('clone-unit', {
+                        detail: {
+                            unit: this._unit
+                        },
+                        bubbles: true,
+                        composed: true
+                    })
+                )
             }
         }
 

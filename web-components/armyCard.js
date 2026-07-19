@@ -14,18 +14,21 @@ export default class ArmyCard extends HTMLElement {
 
         this.onClick = this.onClick.bind(this);
         this.selectUpgrade = this.selectUpgrade.bind(this);
+        this.cloneUnit = this.cloneUnit.bind(this);
         this.deleteUnit = this.deleteUnit.bind(this);
     }
 
     connectedCallback() {
         this.shadow.addEventListener('click', this.onClick);
         this.shadow.addEventListener('select-upgrade', this.selectUpgrade);
+        this.shadow.addEventListener('clone-unit', this.cloneUnit);
         this.shadow.addEventListener('delete-unit', this.deleteUnit);
     }
 
     disconnectedCallback() {
         this.shadow.removeEventListener('click', this.onClick);
         this.shadow.removeEventListener('select-upgrade', this.selectUpgrade);
+        this.shadow.removeEventListener('clone-unit', this.cloneUnit);
         this.shadow.removeEventListener('delete-unit', this.deleteUnit);
     }
 
@@ -88,6 +91,11 @@ export default class ArmyCard extends HTMLElement {
     selectUpgrade(event) {
         this.shadow.querySelector('#upgradeModal').open(event.detail.unit);
     };
+
+    cloneUnit(event){
+        this._army.addUnit(event.detail.unit.identifier, null, event.detail.unit.nickName);
+        this.render();
+    }
 
     deleteUnit(event) {
         this._army.removeUnit(event.detail.unit);

@@ -120,7 +120,7 @@ export default class Army extends EventTarget {
         return this.units.length;
     }
 
-    addUnit(identifier, unitSave) {
+    addUnit(identifier, unitSave, nickName) {
         let unit;
         if (unitSave) {
             unit = new Unit({ identifier: unitSave.identifier, stats: this._armyList.units[unitSave.identifier] });
@@ -134,6 +134,9 @@ export default class Army extends EventTarget {
             }
         } else {
             unit = new Unit({ identifier: identifier, stats: this._armyList.units[identifier] });
+        }
+        if(nickName){
+            unit.name = nickName;
         }
         unit.addEventListener('change', this.saveChangedUnit);
         this._units.push(unit);
