@@ -144,7 +144,11 @@ const ARMY_SPECIAL_RULES = {
     },
     hellServants: {
         darkFervour: { name: "Dark Fervour", description: "When a Hell Servant unit destroys a target, it regains 2 points of lost Cohesion. This only applies if the Hell Servant unit is directly responsible (shooting, close combat, combat shock or psionic attack) and not indirectly (f.x. forcing a unit to retreat into Dangerous Terrain that kills the unit)" },
-        sorceryAbilities: { name: "Sorcery Abilities", description: "Hell Servants with Psionics must use the Sorcery ability list. They cannot use the General list. Sorceries use the rules of Psionics but all damage is Penetrating Damage and line of sight is not required. Sorcerers cannot attack in or be targeted by Psionic Duels." }
+        sorceryAbilities: { name: "Sorcery Abilities", description: "Hell Servants with Psionics must use the Hell Servants Sorcery ability list. They cannot use the General list. Sorceries use the rules of Psionics but all damage is Penetrating Damage and line of sight is not required. Sorcerers cannot attack in or be targeted by Psionic Duels." }
+    },
+    hellRenegades: {
+        suicidalAggression: { name: "Suicidal Aggression", descriptin: `If a Hell Renegade infantry or cavalry unit draws or loses a Close Combat, roll 1D6. On a 4-6 the opposing unit takes 1 point of Penetrating Damage (${TRAITS.penetratingDamage.description}) in addition to any that would normally be incurred.` },
+        sorceryAbilities: { name: "Sorcery Abilities", description: "When using sorceries use the rules of Psionics but all damage is Penetrating Damage and line of sight is not required. Sorcerers cannot attack in or be targeted by Psionic Duels. Hell Renegade Sorcerers are considered to be Demons for the purpose of any unit with combat bonuses." }
     },
     imperials: {
         imperials: { name: "Imperials", description: "All units from this army list are considered Imperial units." }
@@ -194,7 +198,18 @@ const PSIONIC_POWERS_LIST = {
             corruptingSign: { roll: 3, name: "Corrupting Sign", description: "Put a marker on the target unit. Each time it activates roll 1D6. On a 1-3 the marker is removed. On a 4-6 the unit takes 1 point of damage. Duplicate signs have no additional effect." },
             ethericDissolution: { roll: 4, name: "Etheric Dissolution", description: "Until the end of the next enemy turn, the target unit loses all Traits." },
             bitterRite: { roll: 5, name: "Bitter Rite", description: "The sorcerer takes 1 point of damage. The target unit takes 3 points of damage." },
-            unholyHowling: { roll: 6, name: "Unholy Howling", description: "For the rest of the current player turn, all friendly units within range gain Terror Trait: " + TRAITS.terror.description},
+            unholyHowling: { roll: 6, name: "Unholy Howling", description: "For the rest of the current player turn, all friendly units within range gain Terror Trait: " + TRAITS.terror.description },
+        }
+    },
+    hellRenegades: {
+        name: "Hell Renegades Sorcery Abilities",
+        powers: {
+            nauseatingDread: { roll: 1, name: "Nauseating Dread", description: "Until the end of the next enemy turn, the target unit cannot Move, unless moving away from the Sorcerer." },
+            uncontrollableMutation: { roll: 2, name: "Uncontrollable Mutation", description: `Target unit gains Terror (${TRAITS.terror.decription}), Damage Mitigation (${TRAITS.damageMitigation.description}) and adds +1 to all Close Combat damage inflicted, but takes 1 point of Penetrating Damage (${TRAITS.penetratingDamage.description}) each time it is activated for the rest of the battle. Only usable once per unit. If used on an enemy unit, it may try to resist by rolling 2D6 and scoring equal or below its current Cohesion score.` },
+            miasmicAssault: { roll: 3, name: "Miasmic Assault", description: "Mark the target unit. It counts as being in Bad Going and Dangerous Terrain when it is activated next." },
+            invokeTheOverlord: { roll: 4, name: "Invoke the Overlord", description: `The target friendly unit gains +1 to Close Combat and Terror (${TRAITS.terror.description}) for the rest of the battle, but takes 1D6 Penetrating Damage (${TRAITS.penetratingDamage.description}). Only usable once per unit.` },
+            corruptingWinds: { roll: 5, name: "Corrupting Winds", description: "Roll 1D6: On a 1-3 the target takes 2 points of damage. On a 4-6 the target takes 3 points." },
+            substituteTheFlesh: { roll: 6, name: "Substitute the Flesh", description: "Target unit regains 3 Cohesion. Only usable on each unit once per battle." },
         }
     },
     generic: {
@@ -254,561 +269,651 @@ const PSIONIC_POWERS_LIST = {
     }
 }
 
+const imperialLegion = {
+    name: "Imperial Legion (Grimdark)",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.imperialLegion, imperials: ARMY_SPECIAL_RULES.imperials.imperials },
+    psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, imperialLegion: PSIONIC_POWERS_LIST.imperialLegion },
+    upgrades: {
+        ...GENERIC_UPGRADES,
+        antiTankSpecialists: { name: "Anti Tank specialists", keyword: SQUAD, statBonuses: { points: 1 }, description: "Close Combat Anti Tank becomes +2 regardless of prior score." }, //TODO: Overwriting stat with statbonus value
+        humanBomb: { name: "Human Bomb", keyword: SQUAD, statBonuses: { points: 5 }, description: "Add 1 figure to the unit. At any point when the unit is active, remove the figure and select an enemy squad or vehicle (but not Individual) within 6”. Line of sight is not required. Roll 1D6: On a 1-3 the attack fails. On a 4-6 a squad takes 2 points of damage while a vehicle takes a +1 AT hit." },
+        indoctrinationOfficer: { name: "Indoctrination officer", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 1, points: 5 }, description: "Add +1 to Cohesion and Assault values. If the squad is on an objective of any kind, it may not move from that position." },
+        preacher: { name: "Preacher", keyword: SQUAD, statBonuses: { points: 3 }, description: "When taking the Regroup action regain 1 additional point of Cohesion." },
+        veteranSergeant2: { name: "Veteran sergeant", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, points: 3 }, description: "Increase Assault factor by +1." },
+        swagger: { name: "Swagger", keyword: COMMAND, statBonuses: { points: 2 }, description: "When the unit is eliminated, it receives a Lucky Escape roll exactly as it was a Hero. If it is already a Hero, you can roll two dice for Lucky Escapes. Once the Unit has been saved once, the ability is lost for the rest of the game." },
+        plasmaPistol: { name: "Plasma Pistol", keyword: COMMAND, statBonuses: { points: 1 }, description: "When shooting at 9” range or less, you may choose to overcharge the pistol. Add +1 to Firepower and gain Penetrating Damage. If the hit roll is doubles, the shooter takes 1 point of damage." },
+        urbanWarfare: { name: "Urban Warfare", keyword: COMMAND, statBonuses: { points: 1 }, description: "The unit gains the Anti Personnel Trait:" + TRAITS.antiPersonnel.description },
+        rallying: { name: "Rallying", keyword: COMMAND, statBonuses: { points: 3 }, description: "When activated, the unit can give up an Action to recover 1 Cohesion to an Imperial infantry unit within 6” and sight. This can be done with both Actions during a Full Activation. The same target unit can be selected twice." },
+        antiTankGrenades: { name: "Anti tank grenades", keyword: COMMAND, statBonuses: { points: 1 }, description: "Close Combat Anti Tank becomes +1 regardless of current value." }, //TODO: Implement value overriding
+        trackGuards: { name: "Track guards", keyword: VEHICLE, statBonuses: { points: 2 }, description: "If the vehicle is immobilised due to an attack, the Track guards are destroyed instead. A second immobilising hit takes effect normally. Tracked vehicle only. Single use." },
+        flameThrower: { name: "Flame thrower", keyword: VEHICLE, statBonuses: { points: 3 }, description: "When shooting at infantry within 6”, attacks Bypass Cover." },
+        smokeDischarger: { name: "Smoke discharger", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Can be discharged at the end of a Move Action. The vehicle receives Soft Cover until the end of the next enemy Phase but cannot fire this activation. Single Use." },
+        urbanWarfareUpgrade: { name: "Urban Warfare Upgrade", keyword: VEHICLE, statBonuses: { armour: { rear: 1 }, points: 2 }, description: "Add +1 to Rear Armour value." },
+        adverseTerrainUpgrade: { name: "Adverse Terrain Upgrade", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Can move up to 6” when moving in Bad Going. Tracked vehicle only." }
+    },
+    units: {
+        conscriptSquad: { name: "Conscript Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 6, points: 7, composition: "6 figures", specialRules: [] },
+        tacticalSquad: { name: "Tactical Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures with 1 heavy weapon", specialRules: [] },
+        penalSquad: { name: "Penal squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 9, composition: "6 figures", specialRules: [{ name: "Redemption", desription: "If assaulting a unit with an Assault factor of +2 or higher, the unit inflicts 1 additional point of Combat Shock" }, TRAITS.specialist, { name: "Do or die", description: "Penal squads cannot take the Regroup action" }] },
+        unmarkedTrooperSquad: { name: "Unmarked Trooper Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [{ name: "Enthusiasm", description: " When unmarked troopers lose a close combat, the player can choose to have them fight again immediately instead of retreating. You can do this once per close combat. The final result determines retreats" }, TRAITS.specialist] },
+        veteranSquad: { name: "Veteran Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 13, composition: "5 figures", specialRules: [] },
+        shockTroopers: { name: "Shock Troopers", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, cohesion: 9, points: 14, composition: " figures with 1 heavy weapon", specialRules: [] },
+        assaultSquad: { name: "Assault Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 8, composition: "6 figures", specialRules: [] },
+        jumpAssaultSquad: { name: "Jump Assault Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [TRAITS.jump] }, //NOTE: this handles optional jump trait for assault squad. Might have some problem in campaign play if options can be taken ber game basis.
+        semiHumanSquad: { name: "Semi-human Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [TRAITS.specialist] },
+        ogreAssaultSquad: { name: "Ogre Assault Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 10, points: 12, composition: "3 large humanoids", specialRules: [TRAITS.specialist, TRAITS.simpleMinded] },
+        tacticalCavalrySection: { name: "Tactical Cavalry Section", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 7, points: 9, composition: "4 mounted figures", specialRules: [TRAITS.cavalry] },
+        shockCavalrySection: { name: "Shock Cavalry Section", keyword: SQUAD, move: 7, firepower: [{ firefight: null, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 2 }, cohesion: 7, points: 12, composition: "4 mounted figures", specialRules: [TRAITS.cavalry, { name: "Punishing", description: " If the unit wins a round of close combat, the enemy takes 1 additional point of damage" }] },
+        halflingSniperTeam: { name: "Halfling Sniper Team", keyword: SQUAD, move: 4, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 10, composition: "4 figures", specialRules: [TRAITS.sniping, TRAITS.specialist] },
+        heavyWeaponTeam: { name: "Heavy Weapon Team", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 15, composition: "6 figures with 2 heavy weapons", specialRules: [] },
+        sanctionedPsionic: { name: "Sanctioned Psionic", keyword: COMMAND, move: 6, firepower: [{ firefight: null, battle: null, long: null, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 11, composition: "1 figure", specialRules: [{ name: "Unstable psionics", description: "Each time the unit uses a Psionic Power, lose 1 cohesion" }, TRAITS.individual, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.imperialLegion] },
+        battlePsionic: { name: "Battle Psionic", keyword: COMMAND, move: 6, firepower: [{ firefight: null, battle: null, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 18, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.psionic], psionicLevel: 2, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.imperialLegion] },
+        commandSquad: { name: "Command Squad", keyword: COMMAND, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 10, composition: "3 figures", specialRules: [TRAITS.leadership] },
+        cavalryCommandSquad: { name: "Cavalry Command Squad", keyword: COMMAND, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 10, composition: "3 mounted figures", specialRules: [TRAITS.leadership, TRAITS.cavalry] },
+        officer: { name: "Officer", keyword: COMMAND, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 10, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership] },
+        scoutWalker: { name: "Scout Walker", keyword: VEHICLE, move: 8, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 0, antiTank: null }, armour: { front: 8, side: 7, rear: 7 }, points: 15, composition: "1 walker", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Poor Protection", description: "Assault attacks against the scout walker get +1 to anti-tank" }] },
+        frontlineTank: { name: "Frontline Tank", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive] },
+        frontlineTankVanquish: { name: "Frontline Tank - Vangquish", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 2, long: 2, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] }, //TODO: Handles vanquish upgrade
+        frontlineTankAutocannon: { name: "Frontline Tank - Autocannon", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 0 }], armour: { front: 11, side: 10, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] },
+        siegeTank: { name: "Siege Tank", keyword: VEHICLE, move: 5, firepower: [{ type: ANTI_INFANTRY, firefight: 3, battle: 3, long: null, antiTank: null }, { type: ANTI_TANK, firefight: 2, battle: 0, long: null, antiTank: 3 }], armour: { front: 12, side: 10, rear: 8 }, points: 28, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive, TRAITS.siegeGun] },
+        assaultArtillery: { name: "Assault Artillery", keyword: VEHICLE, move: 6, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 3, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 0, long: 0, antiTank: 1 }], armour: { front: 10, side: 8, rear: 7 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive, TRAITS.forwardFiring] },
+        hippogriffMortarTank: { name: "Hippogriff Mortar Tank", keyword: VEHICLE, move: 6, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: null }], armour: { front: 10, side: 8, rear: 7 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.indirectFire, { name: "Shrapnel", description: "When firing indirectly, targets in hard cover are counted as soft cover." }] },
+        flameTank: { name: "Flame Tank", keyword: VEHICLE, move: 9, firepower: [{ type: ANTI_INFANTRY, firefight: 3, battle: 0, long: null, antiTank: null }, { type: ANTI_TANK, firefight: 2, battle: null, long: null, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 19, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.flameWeapon, TRAITS.bypassCover, { name: "Fuel tanks", decriptio: "When hit from the sides, treat minor damage as major" }] },
+        pegasusAmphibiousAssaultVehicle: { name: "Pegasus Amphibioius Assault Vehicle", keyword: VEHICLE, move: 9, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 7 }, points: 15, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (4)", description: TRAITS.transportCapacity.description + ". Can transport only Imperial Legion troops" }, { name: "Amphibious", description: "", }] },
+        centaurReconVehicle: { name: "Centaur Recon Vehicle", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 12, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured] },
+        infantryFightingVehicle: { name: "Infantry Fighting Vehicle", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 1, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (4)", description: TRAITS.transportCapacity.description + ". Can transport only Imperial Legion troops." }] },
+        strikeSpeeder: { name: "Strike Speeder", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: -1, antiTank: null }, cohesion: 6, points: 14, composition: "1 grav vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover] },
+        mortarTeam: { name: "Mortar team", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: null, battle: 0, long: 0, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 15, composition: "1 artillery weapon with crew", specialRules: [TRAITS.indirectFire, TRAITS.fieldArtillery] },
+        quadGun: { name: "Quad Gun", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: null, battle: 1, long: 1, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 17, composition: "1 artillery weapon with crew", specialRules: [TRAITS.indirectFire, TRAITS.fieldArtillery, { name: "Conventional fire", description: "When fired directly, firepower is NA / +0 / +0" }] },
+        tunnelMortar: { name: "Tunnel Mortar", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: null, battle: 0, long: 0, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 18, composition: "1 artillery weapon with crew", specialRules: [TRAITS.indirectFire, TRAITS.fieldArtillery, TRAITS.bypassCover] },
+        scorpionHeavyWeaponsPlatform: { name: "MK1 Scorpion Heavy Weapons Platform", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: 1, battle: 2, long: 1, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 14, composition: "1 artillery weapon with crew", specialRules: [TRAITS.fieldArtillery] },
+        fencerGunCarrier: { name: "MK1 Fencer Gun Carrier", keyword: FIELD_ARTILLERY, move: 3, firepower: [{ firefight: 2, battle: 2, long: 0, antiTank: 0 }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 14, composition: "1 tracked artillery weapon with crew figures", specialRules: [TRAITS.mobileArtillery] }
+    },
+    validator: [
+        {
+            description: "Each Squad allows you to select up to 1 Armoured Vehicle.",
+            validate: units => {
+                let vehicles = units.filter(unit => (unit.stats.keyword === VEHICLE && unit.stats.armour != null));
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+                return vehicles <= squads;
+            }
+        },
+        {
+            description: "Each Squad allows you to select either 1 Field Artillery or 1 Unarmoured Vehicle.",
+            validate: units => {
+                let vehiclesOrArtillery = units.filter(unit => (unit.stats.keyword === VEHICLE && unit.stats.cohesion != null) || (unit.stats.keyword === FIELD_ARTILLERY));
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return vehiclesOrArtillery <= squads;
+            }
+        },
+        {
+            description: "Each Squad allows you to select up to 1 Command Rank unit.",
+            validate: units => {
+                let commanders = units.filter(unit => unit.stats.keyword === COMMAND);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return commanders <= squads;
+            }
+        },
+        {
+            description: "The army must include at least one unit with the Leadership trait.",
+            validate: units => {
+                return units.some(
+                    unit => unit.stats.specialRules?.includes(TRAITS.leadership)
+                )
+            }
+        }
+    ]
+};
+const crawlerHorde = {
+    name: "The Crawler Hordes (Grimdark)",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.crawlerHorde },
+    psionicPowers: { crawlerHorde: PSIONIC_POWERS_LIST.crawlerHorde },
+    upgrades: {
+        searingChemicals: { name: "Searing Chemicals", keyword: SQUAD, statBonuses: { points: 2 }, description: "Gain the Flame Weapon Trait up to 9”: " + TRAITS.flameWeapon.description + " No effect if the unit lacks ranged attacks." },
+        acidBlood: { name: "Acid Blood", keyword: SQUAD, statBonuses: { points: 2 }, description: "When the unit takes damage in close combat (except from Combat Shock) roll 1D6 per point of Cohesion lost. Every 6 inflicts 1 point of Penetrating Damage (" + TRAITS.penetratingDamage.description + ") on the enemy unit" },
+        psiChannel: { name: "Psi Channel", keyword: SQUAD, statBonuses: { points: 1 }, description: "The unit counts as Psionic for the purpose of unit vulnerabilities. It adds +1 to hit and assault rolls against Psionic units" },
+        bugChampion: { name: "Bug Champion", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 2, points: 2 }, description: "Add +2 to Cohesion. Assaults gain +1 and Penetrating Damage (" + TRAITS.penetratingDamage.description + "). The assault bonus is lost if an enemy rolls a natural 6 in close combat against the unit." },
+        razorClaws: { name: "Razor Claws", keyword: SQUAD, statBonuses: { assault: { modifier: 1, antiTank: 1 }, points: 1 }, description: "+1 to Assault and Assault Anti-Tank (becomes +0 if currently -)" }, //TODO: handle granting of factor
+        bioPlasma: { name: "Bio-Plasma", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Gain Bypass Cover: " + TRAITS.bypassCover.description },
+        crushingGrip: { name: "Crushing Grip", keyword: INDIVIDUAL, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Assault Anti-Tank +1" },
+        spineLauncher: { name: "Spine Launcher", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Not subject to Combat Shock" },
+        waveShield: { name: "Wave Shield", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Gain Damage Mitigation except against Psionic units. Damage Mitigation: " + TRAITS.damageMitigation.description },
+        berserker: { name: "Berserker", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "If the unit loses or ties a close combat, fight another round again immediately." }
+    },
+    units: {
+        crawlerWarriors: { name: "Crawler Warriors", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 5, antiTank: 0 }, cohesion: 8, points: 13, composition: "3 large bugs", specialRules: [] },
+        crawlerWarriorsAcidCannon: { name: "Crawler Warriors - Acid Cannon", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 4, antiTank: 0 }, cohesion: 8, points: 15, composition: "3 large bugs with 1 heavy weapon", specialRules: [] },
+        mindSlaves: { name: "Mind Slaves", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 9, composition: "4-5 figures", specialRules: [{ name: "Mind Control", description: "Mind Slaves must always remain within 6” of another Crawler unit. Each time the unit is activated while more than 6” from other Crawlers, it immediately loses 2 Cohesion." }, { name: "Captives", description: " Mind Slave units do not count as Crawlers and do not benefit from any Crawler rules. They do not benefit from any army special rules regardless of what army the unit originally was part of." }] },
+        centaurSquad: { name: "Centaur Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 9, points: 15, composition: "2 bulky figures", specialRules: [] },
+        huntingBrood: { name: "Hunting Brood", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: null }, cohesion: 7, points: 8, composition: "5 figures", specialRules: [TRAITS.agile] },
+        clawedHorrors: { name: "Clawed Horrors", keyword: SQUAD, move: 7, assault: { modifier: 3, antiTank: 0 }, cohesion: 7, points: 9, composition: "5 figures", specialRules: [TRAITS.agile, { name: "Charge", description: "+1 to Assault when initiating combat." }] },
+        wingedBrood: { name: "Winged Brood", keyword: SQUAD, move: 7, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 1, antiTank: null }, cohesion: 7, points: 10, composition: "5 figures", specialRules: [{ name: "Descent", description: "Instead of setting up normally, at the end of the first game turn roll 2D6 and place them anywhere within that many inches of your table edge." }, TRAITS.jump] },
+        critters: { name: "Critters", keyword: SQUAD, move: 7, assault: { modifier: 1, antiTank: null }, cohesion: 6, points: 6, composition: "1 Swarm", specialRules: [{ name: "Chomp chomp", description: "Automatically regain 1 Cohesion each time they engage in assault combat. This is applied before resolving the combat. Not subject to Combat Shock." }, { name: "Fresh salad", description: "Critters do not count plant features as Bad Going and will clear a path as wide as the unit as they move through." }] },
+        mindBlaster: { name: "Mind Blaster", keyword: INDIVIDUAL, move: 3, firepower: [{ firefight: 0, battle: 1, long: 2, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 7, points: 15, composition: "1 big bug", specialRules: [TRAITS.individual, { name: "Psionic bolts", description: "Attack is considered to be psionic for the purpose of units specially affected by this" }, { name: "Psionic shield", description: " 1 point of Damage Mitigation (" + TRAITS.damageMitigation.description + "), unless the attacking unit is Psionic." }] },
+        sneakerKiller: { name: "Sneaker Killer", keyword: INDIVIDUAL, move: 6, assault: { modifier: 4, antiTank: 1 }, cohesion: 8, points: 15, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.agile, { name: "Evasive", description: "All incoming attacks are -1 to hit" }, { name: "Hunter", description: "Enemy Heroes that lose a round of close combat take +1 damage." }] },
+        bioArtillery: { name: "Bio Artillery", keyword: INDIVIDUAL, move: 3, firepower: [{ firefight: null, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 15, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.indirectFire, TRAITS.ponderous] },
+        screamer: { name: "Screamer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: 0, long: 2, antiTank: 2 }], assault: { modifier: 5, antiTank: 3 }, cohesion: 12, points: 29, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.damageMitigation, TRAITS.terror, TRAITS.simpleMinded, { name: "Monster", description: "Size 3" }] },
+        crawlerOverseer: { name: "Crawler Overseer", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 2, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 6, antiTank: 2 }, cohesion: 9, points: 25, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.terror, TRAITS.regenerate, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.crawlerHorde] },
+        crawlerOverseerAcidCannon: { name: "Crawler Overseer - Acid Cannon", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 2 }], assault: { modifier: 6, antiTank: 2 }, cohesion: 9, points: 25, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.terror, TRAITS.regenerate, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.crawlerHorde] }, //Handles acid cannon option
+    },
+    validator: [
+        {
+            description: "The number of Individuals taken must be less than the number of Broods.",
+            validate: units => {
+                let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return individuals < squads;
+            }
+        }
+    ]
+};
+const hellServants = {
+    name: "Hell Servants (Grimdark)",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.hellServants },
+    psionicPowers: { hellServants: PSIONIC_POWERS_LIST.hellServants },
+    upgrades: {
+        ...GENERIC_UPGRADES,
+        prehensileMutations: { name: "Prehensile mutations", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, points: 1 }, description: "Increase Close Combat by 1." },
+        loathsomeForm: { name: "Loathsome Form", keyword: SQUAD, statBonuses: { points: 2 }, description: `Gain Regeneration (${TRAITS.regenerate.description}), Terror (${TRAITS.terror.description}), and Ponderous (${TRAITS.ponderous.description}).` },
+        witchBolts: { name: "Witch Bolts", keyword: SQUAD, statBonuses: { points: 3 }, description: `Gain Bypass Cover ${TRAITS.bypassCover.description}. Unit counts as Psionic for the purpose of unit vulnerabilities.` },
+        hellishArmour: { name: "Hellish Armour", keyword: SQUAD, statBonuses: { points: 2 }, description: "Gain Damage Mitigation: " + TRAITS.damageMitigation.description },
+        aspiringChampion: { name: "Aspiring Champion", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 1, points: 3 }, description: "Increase Close Combat and Cohesion by +1." },
+        wings: { name: "Wings", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Gain the Jump Trait." },
+        vileBlade: { name: "Vile Blade", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Gain Penetrating Damage Trait in Close Combat: " + TRAITS.penetratingDamage.description },
+        demonicBlade: { name: "Demonic Blade", keyword: INDIVIDUAL, statBonuses: { points: 5 }, description: "Only usable by a Hero. If both dice roll a 6 in Close Combat, the target is slain automatically (though Lucky Escape rolls still apply)." }, //TODO: upgrade restriction to heroes only
+        hellAura: { name: "Hell Aura", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `Gain the Terror (${TRAITS.terror.description}) and Demonic Traits (${TRAITS.demonic.description})` },
+        demonicFlames: { name: "Demonic Flames", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Gain Flame Weapon Trait within 9”: " + TRAITS.flameWeapon.description },
+        acidicPresence: { name: "Acidic Presence", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Enemy infantry within 6” are treated as being in Dangerous Terrain." },
+        hellConstruction: { name: "Hell Construction", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Each time the vehicle is activated roll 1D6 for each damage result it has suffered in any order you choose. Any roll of a 6 repairs the damage but no more rolls are made this turn." },
+        rustedBlades: { name: "Rusted Blades", keyword: VEHICLE, statBonuses: { points: 2 }, description: "If assaulted, a unit that fails to inflict damage takes 1 point of Penetrating Damage: " + TRAITS.penetratingDamage.description }
+    },
+    units: {
+        hellKnightBreachSquad: { name: "Hell Knight Breach Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 5, antiTank: 3 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, TRAITS.damageMitigation, TRAITS.specialist] },
+        hellKnightSquad: { name: "Hell Knight Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figureswith 1 heavy weapon", specialRules: [TRAITS.environmentSuit] },
+        hellKnightHeavyWeaponsSquad: { name: "Hell Knight Heavy Weapons Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 2, long: 1, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "3 figures with 2 heavy weapons", specialRules: [TRAITS.environmentSuit] },
+        vultureKnights: { name: "Vulture Knights", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.jump, TRAITS.unique] },
+        veteranHellKnights: { name: "Veteran Hell Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 10, points: 18, composition: "3 figures with 1 heavy or special weapon", specialRules: [TRAITS.environmentSuit, TRAITS.infiltration] },
+        rottedKnights: { name: "Rotted Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, { name: "Feels Nothing", description: `The unit has Damage Mitigation (${TRAITS.damageMitigation.description}) against ranged and close combat attacks that fail to kill the unit outright, but not combat shock or any other source.` }] },
+        berserkerKnights: { name: "Berserker Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, { name: "Rip and Tear", description: "When the unit wins a close combat, the enemy takes 1 additional point of damage." }] },
+        covenKnights: { name: "Coven Knigths", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, { name: "Incantations", description: "The unit counts as Psionic for the purpose of unit vulnerabilities. It may engage in Psionic Duels as a Level 1 unit but takes no damage on a loss." }] },
+        automatonKnights: { name: "Automaton Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 13, composition: "3 figures", specialRules: [{ name: "Beyond Death", description: "Does not take damage from Hazardous terrain. Cannot take the Carry Out or Regroup Actions." }, { name: "Vulnerable to Psionics", description: "All attacks from Psionic enemies receive +1 to hit / close combat rolls." }, TRAITS.specialist] },
+        noiseKnights: { name: "Noise Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, TRAITS.antiPersonnel, { name: "Anti Psionic", description: "Whenever a non Sorcerer Psionic uses a power within 15”, the Noise Knights initiate a Psychic Duel automatically before the power is activated. The Noise Knights count as Level 2 and do not take damage if they lose." }] },
+        demonicKnights: { name: "Demonic Knights", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.demonic, { name: "Penetrating Damage (close combat only)", description: TRAITS.penetratingDamage.description }] },
+        destroyerCult: { name: "Destroyer Cult", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: 2, antiTank: 2 }, cohesion: 10, points: 20, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.unique, TRAITS.ponderous, TRAITS.specialist] },
+        beastSlaves: { name: "Beast Slaves", keyword: SQUAD, move: 5, assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 7, composition: "6 figures", specialRules: [] },
+        houndPack: { name: "Hound Pack", keyword: SQUAD, move: 6, assault: { modifier: 2, antiTank: null }, cohesion: 7, points: 8, composition: "4 figures", specialRules: [TRAITS.agile] },
+        hellDwarves: { name: "Hell Dwarves", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 2, long: 1, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 15, composition: "4 figures with 2 heavy weapons", specialRules: [{ name: "Steady Advance", description: "If receiving a Limited Activation, the unit can Move before performing a Carry Out Action" }] },
+        hellLord: { name: "Hell Lord", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 5, antiTank: 1 }, cohesion: 10, points: 19, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership, TRAITS.unique] },
+        hellChampion: { name: "Hell Champion", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 9, points: 16, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero] },
+        sorcererKnight: { name: "Sorcerer Knight", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 3, psionicLists: [PSIONIC_POWERS_LIST.hellServants] },
+        demonicLord: { name: "Demonic Lord", keyword: INDIVIDUAL, move: 6, assault: { modifier: 5, antiTank: 3 }, cohesion: 10, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.demonic, TRAITS.terror, { name: "Demonic Armour", description: "Each time the unit takes damage roll 2D6. For each die showing a 5-6 reduce the damage taken by 1. Does not apply against Psionic attacks." }] },
+        tacticalCombatArmourAncient: { name: "Tactical Combat Armour - Ancient", keyword: VEHICLE, move: 6, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: 2, antiTank: 3 }, armour: { front: 9, side: 8, rear: 7 }, points: 19, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
+        tacticalCombatArmourBerserker: { name: "Tactical Combat Armour - Berserker", keyword: VEHICLE, move: 6, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 1, long: 1, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 3, antiTank: 1 }, armour: { front: 9, side: 8, rear: 7 }, points: 19, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Frenzied", description: "When firing, the unit must always select the closest visible enemy." }] },
+        demonicGunCrab: { name: "Demonic Gun Crab", keyword: VEHICLE, move: 4, firepower: [{ firefight: 0, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 2, antiTank: 2 }, armour: { front: 10, side: 10, rear: 8 }, points: 23, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.highExplosive, TRAITS.forwardFiring] },
+        slaughterStorm: { name: "Slaughter Storm", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, armour: { front: 8, side: 8, rear: 8 }, points: 17, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured, { name: "Frenzied", description: "When firing, the unit must always select the closest visible enemy." }, { name: "Assault Vehicle", descriptin: "Engaes in close combat like a walker." }] },
+        landCrusherAssaultTank: { name: "Land Crusher Assault Tank", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 3 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (3)", description: TRAITS.transportCapacity.description }] },
+        assailantMediumTank: { name: "Assailant Medium Tank", keyword: VEHICLE, move: 10, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 1, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 1, long: 1, antiTank: 2 }], armour: { front: 10, side: 10, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] },
+        chargerTroopCarrier: { name: "Charger Troop Carrier", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], armour: { front: 10, side: 8, rear: 8 }, points: 10, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (4)", description: TRAITS.transportCapacity.description }] },
+        bikeSquad: { name: "Bike Squad", keyword: VEHICLE, move: 12, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 7, points: 14, composition: "2 figures", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.wheeled, TRAITS.forwardFiring] },
+    },
+    validator: [
+        {
+            description: "You may take up to 1 Individuals for every Squads.",
+            validate: units => {
+                let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return individuals.length <= squads.length;
+            }
+        },
+        {
+            description: "The number of vehicles must be less than the number of Squads.",
+            validate: units => {
+                let vehicles = units.filter(unit => unit.stats.keyword === VEHICLE);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return vehicles.length < squads.length;
+            }
+        }
+    ]
+};
+const hellRenegades = {
+    name: "Hell Renegades (Grimdark)",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.hellRenegades },
+    psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, hellRenegades: PSIONIC_POWERS_LIST.hellRenegades },
+    upgrades: {
+        ...GENERIC_UPGRADES,
+        rustedCleavers: { name: "Rusted Cleavers", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, points: 1 }, description: "+1 to Close Combat" },
+        bloodRituals: { name: "Blood Rituals", keyword: SQUAD, statBonuses: { points: 3 }, description: "Gain Regeneration trait: " + TRAITS.regenerate.description },
+        lootedArsenal: { name: "Looted Arsenal", keyword: SQUAD, statBonuses: { points: 2 }, description: "Gain Anti Personnel trait: " + TRAITS.antiPersonnel.description },
+        creepingAndCrawling: { name: "Creeping and Crawling", keyword: SQUAD, statBonuses: { points: 2 }, description: "Gain the Infiltration trait: " + TRAITS.infiltration.description },
+        vileAffliction: { name: "Vile Affliction", keyword: SQUAD, statBonuses: { points: 1 }, description: "Gain Terror trait: " + TRAITS.terror.description + ". Count as a Demon for units with combat bonuses." },
+        warpedLegs: { name: "Warped Legs", keyword: INDIVIDUAL, statBonuses: { move: 1, points: 2 }, description: "+1” Movement speed." },
+        envelopingTentacle: { name: "Enveloping Tentacle", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "+1 Close Combat vs Individuals." },
+        demonRealmBlade: { name: "Demon Realm Blade", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Penetrating Damage in Close Combat: " + TRAITS.penetratingDamage.description + ". Add +1 to Close Combat damage versus Demons." },
+        unsettlingGaze: { name: "Unsettling Gaze", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Gain the Terror trait: " + TRAITS.terror.description },
+        conjurations: { name: "Conjurations", keyword: INDIVIDUAL, statBonuses: { points: 4 }, description: "Gain Psionic (1)" } //TODO: Make unit able to choose psionic powers list too
+    },
+    units: {
+        humanDegenerates: { name: "Human Degenerates", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 1, antiTank: null }, cohesion: 7, points: 6, composition: "5 figures", specialRules: [TRAITS.limitedIntelligence] },
+        degeneratesWithHeavyWeapons: { name: "Degenerates with heavy weapons", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 8, composition: "5 figures with 2 heavy weapons", specialRules: [TRAITS.limitedIntelligence] },
+        orcMinions: { name: "Orc Minions", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: null }, cohesion: 8, points: 9, composition: "6 figures with 1 heavy weapon", specialRules: [] },
+        ogreGang: { name: "Ogre Gang", keyword: SQUAD, move: 6, assault: { modifier: 4, antiTank: 1 }, cohesion: 10, points: 11, composition: "3 large figures", specialRules: [TRAITS.simpleMinded] },
+        trolls: { name: "Trolls", keyword: SQUAD, move: 5, assault: { modifier: 3, antiTank: 1 }, cohesion: 10, points: 11, composition: "3 large figures", specialRules: [TRAITS.regenerate, TRAITS.simpleMinded] },
+        mutantSemiHumans: { name: "Mutant Semi-Humans", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [TRAITS.regenerate] },
+        demonicAndroids: { name: "Demonic Androids", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 0 }, cohesion: 9, points: 8, composition: "4 figures", specialRules: [TRAITS.mechanical, TRAITS.terror, TRAITS.erratic, TRAITS.demonic] },
+        goblinMob: { name: "Goblin Mob", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 6, points: 4, composition: "8 figures", specialRules: [{ name: "Cowards", descriptin: " Each time the unit takes damage roll 1D6 immediately. If the roll is above the remaining Cohesion, the unit is removed from play. If any Goblin units remain on the table, you may add +2 Cohesion to one of choice (which may exceed the maximum)" }] },
+        slaveTroops: { name: "Slave Troops", keyword: SQUAD, move: 5, assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 5, composition: "8 figures", specialRules: [{ name: "No retreat", descriptin: "If the unit loses a close combat, it is destroyed. The opposing unit must roll 3D6 and take 1 point of damage for each die that shows a 4-6." }, { name: "No hope", description: "The unit cannot regain Cohesion for any reason." }] },
+        hellKnightRetinue: { name: "Hell Knight Retinue", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 3, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures with 1 heavy weapon", specialRules: [TRAITS.environmentSuit, TRAITS.specialist, { name: "Retinue", desciption: "Only 1 unit may be taken per Renegade Warlord or Renegade Leader." }] },
+        renegadeWarlord: { name: "Renegade Warlord", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 11, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership, TRAITS.unique] },
+        renegadeLeader: { name: "Renegade Leader", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 13, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership] },
+        renegadeChampion: { name: "Renegade Champion", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Eye of the gods", descriptin: "+1 to Close Combat against Heroes." }] },
+        possessedChampion: { name: "Possessed Champion", keyword: INDIVIDUAL, move: 6, assault: { modifier: 4, antiTank: 1 }, cohesion: 10, points: 18, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.regenerate, TRAITS.terror, TRAITS.demonic] },
+        renegadePsychic: { name: "Renegade Psychic", keyword: INDIVIDUAL, move: 4, assault: { modifier: 0, antiTank: 0 }, cohesion: 7, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.psionic, { name: "Foul Bargains", description: "When activating you may choose to count as a Level 3 or Level 4 Psionic. Roll 1D6 (L3) or 2D6 (L4) and for each 1 the character loses 1 Cohesion." }], psionicLevel: 2, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.hellRenegades] },
+        covenAspirant: { name: "CovenAspirant", keyword: INDIVIDUAL, move: 4, firepower: [{ firefight: -1, battle: null, long: null, antiTank: null }], assault: { modifier: -1, antiTank: 0 }, cohesion: 7, points: 10, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.hellRenegades] },
+        hellKnightAgent: { name: "Hell Knight Agent", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 12, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.unique] },
+        renegadeDreadnought: { name: "Renegade Dreadnought", keyword: VEHICLE, move: 6, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: 2, antiTank: 2 }, armour: { front: 10, side: 9, rear: 9 }, points: 24, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.ponderous, TRAITS.forwardFiring, { name: "Rapid Fire", desciption: "May Shoot twice per Fire action" }] },
+        ...Object.fromEntries( //Copies vehicles from Hell Servants army list and increases their point cost by 2
+            Object.entries(hellServants.units).filter(([, value]) => value.keyword === VEHICLE).map(([key, value]) => [
+                key,
+                { ...value, points: value.points + 2 }
+            ])
+        )
+
+    },
+    validator: [
+        {
+            description: "You may take up to 1 vehicle for every 2 squads.",
+            validate: units => {
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+                let vehicles = units.filter(unit => unit.stats.keyword === VEHICLE);
+
+                return vehicles.length * 2 < squads.length;
+            }
+        },
+        {
+            description: "You may take up to 1 individual for every squad.",
+            validate: units => {
+                let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return individuals.length <= squads.length;
+            }
+        },
+        {
+            description: "You must take at least 1 figure with the Leadership trait.",
+            validate: units => {
+                return units.some(
+                    unit => unit.stats.specialRules?.includes(TRAITS.leadership)
+                )
+            }
+        },
+        {
+            description: "Only one Hell Knight Retinue may be taken per Renegade Warlord or Renegade Leader.",
+            validate: units => {
+                let renegadeWarlordOrLeader = units.filter(unit => unit.identifier === "renegadeWarlord" || unit.identifier === "renegadeLeader");
+                let hellKnights = units.filter(unit => unit.identifier === "hellKnightRetinue");
+                return hellKnights.length <= renegadeWarlordOrLeader.length;
+            }
+        }
+    ]
+};
+const killBots = {
+    name: "Killbots (Grimdark)",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.killBots, noPsionics: { name: "No psionics", description: "Kill Bots cannot use Psionics under any circumstances" } },
+    psionicPowers: {},
+    upgrades: {
+        repeatingGaussRifle: { name: "Repeating Gauss Rifle", keyword: SQUAD, statBonuses: { points: 1 }, description: "Add Anti Personnel trait: " + TRAITS.antiPersonnel.description },
+        heavyGaussBeam: { name: "Heavy Gauss Beam", keyword: SQUAD, statBonuses: { firepower: { antiTank: 1 }, points: 2 }, description: "Ranged Anti Tank is increased by 1. Units with ranged attacks only." },
+        heavyCorrosiveVibrations: { name: "Heavy Corrosive Vibrations", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Assault Anti Tank becomes +1 if currently - and is increased by 1 otherwise." },
+        sinisterAura: { name: "Sinister Aura", keyword: SQUAD, statBonuses: { points: 1 }, description: "Gain Terror trait: " + TRAITS.terror.description },
+        anointedByTheAncient: { name: "Anointed by the Ancient", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 1, points: 2 }, description: "Increase Close Combat and Cohesion by +1." },
+        timeDistortionSphere: { name: "Time Distortion Sphere", keyword: INDIVIDUAL, statBonuses: { points: 5 }, description: "Single Use. Receive one less Limited Activations this turn. Next turn, receive one more Full Activations." },
+        gaussScatterBeam: { name: "Gauss Scatter Beam", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Gain Anti Personnel trait: " + TRAITS.antiPersonnel.description },
+        liquidMetal: { name: "Liquid Metal", keyword: INDIVIDUAL, statBonuses: { cohesion: 1, points: 4 }, description: "+1 to Cohesion and Damage Mitigation: " + TRAITS.damageMitigation.description },
+        phaseBlade: { name: "Phase Blade", keyword: INDIVIDUAL, statBonuses: { assault: { modifier: 1 }, points: 3 }, description: "Gain Penetrating Damage in close Combat (" + TRAITS.penetratingDamage.description + "). +1 to Assault." },
+        phaseNullificationBeacon: { name: "Phase Nullification Beacon", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Distortion Field extends to 9” instead of 6”." }
+    },
+    units: {
+        raiderBots: { name: "Raider-Bots", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 15, composition: "4 figures", specialRules: [] },
+        heavyGunBots: { name: "Heavy Gun Bots", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 2, long: 1, antiTank: 1 }], assault: { modifier: 1, antiTank: null }, cohesion: 8, points: 18, composition: "3 figures", specialRules: [] },
+        slaughterBots: { name: "Slaughter Bots", keyword: SQUAD, move: 6, assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 14, composition: "4 figures", specialRules: [TRAITS.agile] },
+        cursedBots: { name: "Cursed Bots", keyword: SQUAD, move: 6, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 3, antiTank: 3 }, cohesion: 8, points: 20, composition: "4 figures", specialRules: [{ name: "Anti Psionic", description: "+1 to hit and close combat against Psionic units" }, TRAITS.penetratingDamage] },
+        skitterBots: { name: "Skitter Bots", keyword: SQUAD, move: 7, assault: { modifier: 0, antiTank: 0 }, cohesion: 6, points: 8, composition: "4-6 small figures", specialRules: [TRAITS.agile, { name: "Disruption", description: "Attacks against units within 6” of Skitter Bots receive a +1 bonus to hit/close combat." }] },
+        ghostBots: { name: "Ghost Bots", keyword: SQUAD, move: 6, assault: { modifier: 4, antiTank: 0 }, cohesion: 8, points: 16, composition: "2 large figures", specialRules: [{ name: "Phase", description: "Ghosts can move through units and terrain. They cannot end a move within a solid terrain feature" }] },
+        hoverGunBots: { name: "Hover Gun Bots", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 2, long: 2, antiTank: 2 }], assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 23, composition: "2 figures", specialRules: [TRAITS.hover] },
+        killBotLord: { name: "Kill Bot Lord", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 1 }], assault: { modifier: 1, antiTank: 2 }, cohesion: 10, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Energy Weapon", description: "Close Combat damage is Penetrating: " + TRAITS.penetratingDamage.description }] },
+        killBotAssassin: { name: "Kill Bot Assassin", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 10, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.antiPersonnel, { name: "Hunter", description: "Enemy Heroes that lose a round of close combat take +1 damage." }] },
+        gunBotPlatform: { name: "Gun Bot Platform", keyword: VEHICLE, move: 7, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: 3 }], armour: { front: 8, side: 7, rear: 7 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured] },
+        killStrider: { name: "Kill Strider", keyword: VEHICLE, move: 6, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 1, antiTank: null }, armour: { front: 9, side: 8, rear: 7 }, points: 16, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.flameWeapon, TRAITS.siegeGun] },
+        skullCrawler: { name: "Skull Crawler", keyword: VEHICLE, move: 4, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 1, antiTank: null }, armour: { front: 10, side: 10, rear: 10 }, points: 30, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.ponderous, TRAITS.forwardFiring, { name: "Two shots", description: "May shoot twice. Decare both targets before rolling. Targets must be within 6” of each other." }] },
+        deathPyramid: { name: "Death Pyramid", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 2, long: null, antiTank: 1 }], armour: { front: 11, side: 11, rear: 11 }, points: 30, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured, TRAITS.ponderous, { name: "Arc weapon", description: "May attack 2 different units each turn. Must always target the closest visible enemies." }] }
+    },
+    validator: [
+        {
+            description: "You may take up to 1 support unit and 1 individual for every 2 squads. Every 5 squads allow selecting 1 additional support unit OR individual.",
+            validate: units => {
+                let support = units.filter(unit => unit.stats.keyword === VEHICLE);
+                let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+                let extraSupportOrIndividuals = Math.floor(squads.length / 5);
+                let allowedSupportOrIndividuals = Math.floor(squads.length / 2);
+                let excessSupport = support.length - allowedSupportOrIndividuals;
+                excessSupport = excessSupport < 0 ? 0 : excessSupport;
+                let excessIndividuals = individuals.length - allowedSupportOrIndividuals;
+                excessIndividuals = excessIndividuals < 0 ? 0 : excessIndividuals;
+                return excessSupport + excessIndividuals > extraSupportOrIndividuals ? false : true;
+            }
+        }
+    ]
+};
+const spaceElves = {
+    name: "Space Elves (Grimdark)",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.spaceElves },
+    psionicPowers: { spaceElves: PSIONIC_POWERS_LIST.spaceElves },
+    upgrades: {
+        ...GENERIC_INDIVIDUAL_UPGRADES, ...GENERIC_VEHICLE_UPGRADES,
+        ancientWarAxe: { name: "Ancient War Axe", keyword: INDIVIDUAL, statBonuses: { assault: { modifier: 1 }, points: 2 }, description: "+1 to Assault" },
+        duellingBlades: { name: "Duelling Blades", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "When fighting Individuals in Close Combat, add +1 to Assault and +1 to any damage inflicted." },
+        psionicAssail: { name: "Psionic Assail", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Whenever the unit would inflict Combat Shock, inflict 1 additional point. Unit counts as Psionic for the purpose of traits and vulnerabilities." },
+        runeCasting: { name: "Rune Casting", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Twice per battle you can reroll a failed die roll for this character and use either result." },
+        searingPistol: { name: "Searing Pistol", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Gain +1 Anti Tank when firing at Firefight range." },
+        psionicLinkCrystal: { name: "Psionic Link Crystal", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Walkers only. If within 9” of a friendly Psionic, add +1 to hit rolls when firing." },
+        flameGuns: { name: "Flame Guns", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Walkers only. Gain Flame Weapon Trait at Firefight range." }, //TODO: unit type restriction
+        hyperReactiveEngines: { name: "Hyper Reactive Engines", keyword: VEHICLE, statBonuses: { points: 1 }, description: "Armoured vehicles only. . The vehicle can turn 45 degrees for free when it is activated." }, //TODO: unit type restriction
+        diffusionField: { name: "Diffusion Field", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Armoured vehicles only. Every time the vehicle is hit by a ranged attack roll 1D6. On a 6 the hit has no effect." }, //TODO: unit type restriction
+        psiShockEmitter: { name: "Psi-Shock Emitter", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Armoured vehicles only. Close assaulting infantry that fail to destroy the vehicle take 1 point of damage." }, //TODO: unit type restriction
+        psionicDisarrayCaster: { name: "Psionic Disarray Caster", keyword: VEHICLE, statBonuses: { assault: { modifier: 1 }, points: 1 }, description: "Light vehicles only. +1 to Assault" }, //TODO: unit type restriction
+        adaptiveTerrainEvasion: { name: "Adaptive Terrain Evasion", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Light vehicles only. When placed on top of terrain features, all incoming fire is -1 to hit." }, //TODO: unit type restriction
+        crystalTargetingArray: { name: "Crystal Targeting Array", keyword: VEHICLE, statBonuses: { firepower: { firefight: 1, battle: 1, long: 1 }, points: 3 }, description: "Light vehicles only. +1 Firepower at all ranges." } //TODO: unit type restriction
+    },
+    units: {
+        roverSquad: { name: "Rover Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: 2, long: 2, antiTank: null }], assault: { modifier: 1, antiTank: null }, cohesion: 6, points: 15, composition: "3 figures", specialRules: [TRAITS.infiltration, TRAITS.agile] },
+        homeDefenceSquad: { name: "Home Defence Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: 1, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 7, points: 10, composition: "4 figures", specialRules: [] },
+        homeDefenceAssaultSquad: { name: "Home Defence Assault Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, cohesion: 7, points: 9, composition: "4 figures", specialRules: [] },
+        homeDefenceAssaultSquadFlamer: { name: "Home Defence Assault Squad - Flamer", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, cohesion: 7, points: 11, composition: "4 figures", specialRules: [TRAITS.flameWeapon] },
+        vengeanceWarCult: { name: "Vengeance War Cult", keyword: SQUAD, move: 7, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 1 }, cohesion: 7, points: 15, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Intense Firefight", description: "Fires simultaneously with attacker when being attacked in firefights." }] },
+        deathTollWarCult: { name: "Death-Toll War Cult", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 2, long: 2, antiTank: 3 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 7, points: 23, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Accurate", description: "Ignore Light Vehicle hit penalty." }] },
+        killBirdWarCult: { name: "Kill Bird War Cult", keyword: SQUAD, move: 9, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 1 }, cohesion: 7, points: 12, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, TRAITS.jump, { name: "Redeploy", description: "When taking a double move the unit can be placed anywhere within 24”." }] },
+        venomStingWarCult: { name: "Venom-Sting War Cult", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 0 }, cohesion: 7, points: 14, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Punishing", description: "If the unit wins a round of close combat, the enemy takes 1 additional point of damage." }] },
+        graveScreamWarCult: { name: "Grave-Scream War Cult", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 0 }, cohesion: 7, points: 15, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Psionic Charge", description: "When initiating Close Combat, inflict an additional point of Combat Shock." }] },
+        voidLeapWarCult: { name: "Void-Leap War Cult", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 7, points: 16, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Void Movement", description: " When the unit activates, it may move to any location within 9”. This does NOT use a Move action but the unit cannot use Void movement and regular Movement in the same activation." }] },
+        fireLashWarCult: { name: "Fire-Lash War Cult", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: 2 }], assault: { modifier: 2, antiTank: 2 }, cohesion: 7, points: 15, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Fusion Weapons", description: "+1 to Anti Tank within 9”." }] },
+        elvenWarDemon: { name: "Elven War Demon", keyword: INDIVIDUAL, move: 6, assault: { modifier: 8, antiTank: 4 }, cohesion: 15, points: 30, composition: "1 figure", specialRules: [TRAITS.unique, TRAITS.leadership, TRAITS.individual, TRAITS.specialist, { name: "Extra Dimensional", description: "Considered to be a Demon for the purpose of unit abilities. Is not affected by Hazardous Terrain and is unaffected by any virus or poison." }] },
+        grandSeer: { name: "Grand Seer", keyword: INDIVIDUAL, move: 4, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 1 }, cohesion: 8, points: 25, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.unique, TRAITS.damageMitigation, TRAITS.leadership, TRAITS.psionic], psionicLevel: 4, psionicLists: [PSIONIC_POWERS_LIST.spaceElves] },
+        elfSorcerer: { name: "Elf Sorcerer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 1 }, cohesion: 8, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.damageMitigation, TRAITS.psionic], psionicLevel: 2, psionicLists: [PSIONIC_POWERS_LIST.spaceElves] },
+        wraithSeer: { name: "Wraith Seer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 1 }, cohesion: 8, points: 16, composition: "1 figure", specialRules: [TRAITS.individual, { name: "Repair (Elf vehicles only)", description: TRAITS.repair.description }, { name: "Psionic aptitude", description: "Can engage and defend in Psionic Duels (L2) and count as Psionic, but cannot use powers." }] },
+        adventurer: { name: "Adventurer", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 1 }], assault: { modifier: 3, antiTank: 2 }, cohesion: 8, points: 19, composition: "1 figure", specialRules: [TRAITS.hero, TRAITS.individual, { name: "Premonition", description: "After both sides finish deploying, you may move the Adventurer to anywhere within your deployment zone." }] },
+        warCultChampion: { name: "War Cult Champion", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 5, antiTank: 1 }, cohesion: 9, points: 24, composition: "1 figure", specialRules: [TRAITS.hero, TRAITS.individual, { name: "Arcane Weapons", description: "If an assault ends in a Draw, the Champion takes no damage and the enemy takes an additional point of damage." }] },
+        soulStrider: { name: "Soul Strider", keyword: VEHICLE, move: 8, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: 3, antiTank: 1 }, armour: { front: 8, side: 8, rear: 8 }, points: 24, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Scything Fire", description: "In firefights, damage against infantry targets is +1." }] },
+        scoutStrider: { name: "Scout Strider", keyword: VEHICLE, move: 9, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: 0, antiTank: null }, armour: { front: 8, side: 8, rear: 8 }, points: 21, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Duplicate targeting array", description: "The Strider may fire twice per turn, but may not target the same unit twice." }, { name: "Power screened crew", description: "Each time the Strider is hit by any attack roll 2D6. On a total of 11 or 12, the pilot is killed and the Strider is destroyed." }, { name: "Poor protection", description: "Assault attacks against the scout walker get +1 to anti-tank." }] },
+        deathWalkers: { name: "Death Walkers", keyword: VEHICLE, move: 6, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 3 }], assault: { modifier: 1, antiTank: 2 }, armour: { front: 8, side: 8, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.ponderous, { name: "Kill Beam", description: "Ranged attacks that penetrate vehicle armour roll twice on the damage table and pick the highest result." }] },
+        firehawkGravTank: { name: "Firehawk Grav Tank", keyword: VEHICLE, move: 12, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], armour: { front: 10, side: 9, rear: 9 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured, { name: "Transport Capacity (3)", desription: TRAITS.transportCapacity }] },
+        fireChannel: { name: "Fire Channel", keyword: VEHICLE, move: 12, firepower: [{ firefight: 0, battle: 1, long: 2, antiTank: 2 }], armour: { front: 10, side: 9, rear: 9 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured] },
+        serpent: { name: "Serpent", keyword: VEHICLE, move: 12, firepower: [{ type: ANTI_INFANTRY, firefight: 0, battle: 0, long: null, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 6, points: 15, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.hover, TRAITS.open] },
+        hyperBike: { name: "Hyper Bike", keyword: VEHICLE, move: 14, firepower: [{ firefight: 0, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 6, points: 14, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.hover, TRAITS.open, TRAITS.forwardFiring, TRAITS.antiPersonnel] },
+        displacerCannon: { name: "Displacer Cannon", keyword: FIELD_ARTILLERY, move: 4, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 20, composition: "1 artillery and 2 crew", specialRules: [TRAITS.mobileArtillery, { name: "Destructive", description: "A double 5 or double 6 to hit reduces the target to 0 Cohesion regardless of Damage Mitigation or current Cohesion." }, { name: "Slow build up", description: "The unit cannot move and fire." }] },
+        laserPlatform: { name: "Laser Platform", keyword: FIELD_ARTILLERY, move: 4, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 15, composition: "1 artillery and 2 crew", specialRules: [TRAITS.mobileArtillery] },
+        plasmaPlatform: { name: "Plasma Platform", keyword: FIELD_ARTILLERY, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 16, composition: "1 artillery and 2 crew", specialRules: [TRAITS.mobileArtillery, { name: "Charge Up", description: " If the unit does not move, Firepower is +2 / +2 / +2 and AT is +2." }] },
+        vibrationCannon: { name: "Vibration Cannon", keyword: FIELD_ARTILLERY, move: 4, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 16, composition: "1 artillery and 2 crew", specialRules: [TRAITS.mobileArtillery, TRAITS.siegeGun, { name: "Beam Weapon", description: "When firing draw a line that stops when blocked by terrain. All units under the line are attacked, including friendlies." }] }
+    },
+    validator: [
+        {
+            description: "You may take up to 1 vehicle per Squad.",
+            validate: units => {
+                let vehicles = units.filter(unit => unit.stats.keyword === VEHICLE);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return vehicles.length <= squads.length;
+            }
+        },
+        {
+            description: "You may take up to 1 Field Artillery for every 2 Squads.",
+            validate: units => {
+                let fieldArtillery = units.filter(unit => unit.stats.keyword === FIELD_ARTILLERY);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return fieldArtillery.length * 2 <= squads.length;
+            }
+        },
+        {
+            description: "You may take up to 1 Individual per Squad.",
+            validate: units => {
+                let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return individuals.length <= squads.length;
+            }
+        }
+    ]
+};
+const spaceOrcs = {
+    name: "Space Orcs (Grimdark)",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.spaceOrcs, orcishOrganisation: { name: "Orcish organisation", description: "Players who prefer a more “horde” look to their orcs can add 0-2 figures to each squad as they see fit. This does not modify the stats of the unit in any way." }, spaceOrcPsionics: { name: "Space Orc Psionics", description: "Space Orcs MUST use Space Orcs psionic table, they cannot use general psionic abilities. All Space Orc Psionic damage is Penetrating Damage (" + TRAITS.penetratingDamage.description + "). Orc Psionics always target the closest enemy unit and must use a power if an enemy is visible. You are not required to activate Psionic units however." } },
+    psionicPowers: { spaceOrcs: PSIONIC_POWERS_LIST.spaceOrcs },
+    upgrades: {
+        ...GENERIC_UPGRADES,
+        bigOrc: { name: "Big Orc", keyword: SQUAD, statBonuses: { points: 2 }, description: "The squad adds +1 to Assault rolls when it is attacking (but not when defending)." },
+        ardLadz: { name: "Ard Ladz", keyword: SQUAD, statBonuses: { points: 1 }, description: "The squad gains Damage Mitigation: " + TRAITS.damageMitigation.description },
+        mek: { name: "Mek", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 2 }, description: "If the squad does not have an assault anti tank value, it receives a +0. If it has an assault anti tank value, it is increased by 1." }, //TODO: Handle granting of stat
+        bigBanner: { name: "bigBanner", keyword: SQUAD, statBonuses: { points: 5 }, description: "The Unit gains the Leadership trait: " + TRAITS.leadership.description },
+        extraShooty: { name: "Extra Shooty", keyword: SQUAD, statBonuses: { points: 2 }, description: "The squad gains Anti Personnel up to 24” range: " + TRAITS.antiPersonnel.description },
+        goblinAssistant: { name: "Goblin Assistant", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Each time the character shoots or fights in Close Combat roll 1D6. On a 1 the character rolls at a -1 penalty, on a 5-6 roll at a +1 bonus. If the character loses a Close Combat round, the Assistants are killed." },
+        megaCrushArm: { name: "Mega Crush Arm", keyword: INDIVIDUAL, statBonuses: { assault: { antiTank: 1 }, points: 2 }, description: "Add +1 to Close Combat Anti Tank. Close Combat attacks are Penetrating Damage: " + TRAITS.penetratingDamage.description },
+        customGun: { name: "Custom Gun", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "You may reroll one die each time you shoot, however if a hit roll is a double 1 before or after rerolling, the weapon explodes: The character takes 2 points of damage and cannot shoot for the rest of the game." },
+        stateOfTheOrcCybernetics: { name: "State of the Orc Cybernetics", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: `Gain Damage Mitigation (${TRAITS.damageMitigation.description}), Limited Intelligence (${TRAITS.limitedIntelligence.description}) and Simple Minded (${TRAITS.simpleMinded.description}).` },
+        bigOleBomb: { name: "Big Ole Bomb", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `Usable once per battle as a ranged attack. Requires a Fire action. Attacks up to 9” with +2 Firepower, High Explosive (${TRAITS.highExplosive.description}) and +3 Anti Tank.` },
+        superFastGuns: { name: "Super Fast Guns", keyword: VEHICLE, statBonuses: { firepower: { firefight: 1, battle: -1, long: -1 }, assault: { modifier: 1 }, points: 1 }, description: "Light Vehicles only. Increase 9” Firepower by 1. Reduce 24” and Long Firepower by 1. Close Combat is increased by +1" }, //TODO: Make upgrade available only for light vehicles
+        somewhatArmouredCompartment: { name: "Somewhat Armoured Compartment", keyword: VEHICLE, statBonuses: { cohesion: 1, points: 2 }, description: "Light vehicles only. Cohesion +1" }, //TODO: Make upgrade available only for light vehicles 
+        goblinRiders: { name: "Goblin Riders", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Light vehicles only. If the vehicle is destroyed, replace it with a Goblin Squad." },//TODO: Make upgrade available only for light vehicles 
+        extraBigGrabbyClaw: { name: "Extra Big Grabby Claw", keyword: VEHICLE, statBonuses: { assault: { antiTank: 2 }, points: 2 }, description: "Walkers only. Close Combat Anti Tank is increased by 2." }, //TODO Make upgrade available only for walkers
+        powerShield: { name: "Power Shield", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Walkers only. Activates when taking a hit with AT +0 or greater. Roll 1D6 for each hit. On a 5-6 the hit is negated completely. On a 2-4 nothing happens. On a 1 the walker is paralysed and cannot be activated next Orc turn." },//TODO Make upgrade available only for walkers
+        overchargedLaser: { name: "Overcharged Laser", keyword: VEHICLE, statBonuses: { points: 2 }, description: "When shooting at Armoured vehicles, add 2 to Anti Tank but reduce Firepower by 1." },//TODO Make upgrade available only for walkers
+        boltedOnJunk: { name: "Bolted On Junk", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Armoured vehicles only. The first damage result the vehicle suffers from any source is ignored." }, //Make upgrade available only for armoured vehicles
+        slimmedDownArmour: { name: "Slimmed Down Armour", keyword: VEHICLE, statBonuses: { move: 3, armour: { side: -1, rear: -1 }, points: 1 }, description: "Armoured vehicles only. Reduce Flank and Side Armour by 1 point each. Increase Speed by +3”." },//Make upgrade available only for armoured vehicles
+        hugePileOfAmmo: { name: "Huge Pile Of Ammo", keyword: VEHICLE, statBonuses: { points: 2 }, description: `Armoured vehicles only. Gain Anti Personnel (${TRAITS.antiPersonnel.description}). If the vehicle is Knocked Out, it is always treated as Catastrophic Damage.` }//Make upgrade available only for armoured vehicles
+    },
+    units: {
+        goblins: { name: "Goblins", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 5, points: 5, composition: "8 figures", specialRules: [{ name: "Distracting", description: "Enemies withn 9” of goblins cannot fire at a more distant target." }, TRAITS.agile] },
+        venomBitesSquad: { name: "Venom Bites Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 9, composition: "6 figures", specialRules: [] },
+        angrySunSquad: { name: "Angry Sun Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 8, composition: "6 figures", specialRules: [] },
+        goreHammerSquad: { name: "Gore Hammer Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [{ name: "Cunning", description: "Gore Hammer and Kommando units are not counted for the purpose of the Disregard for Planning army rule." }] },
+        gruntzSquad: { name: "Gruntz Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [] },
+        primitiveWarband: { name: "Primitive Warband", keyword: SQUAD, move: 6, assault: { modifier: 3, antiTank: null }, cohesion: 8, points: 8, composition: "6 figures", specialRules: [] },
+        goreHammerKommandos: { name: "Gore Hammer Kommandos", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 2 }, cohesion: 9, points: 11, composition: "5 figures", specialRules: [TRAITS.infiltration, { name: "Cunning", description: "Gore Hammer and Kommando units are not counted for the purpose of the Disregard for Planning army rule." }] },
+        tankBreakies: { name: "Tank Breakies", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: -1, antiTank: +1 }], assault: { modifier: 2, antiTank: 2 }, cohesion: 8, points: 10, composition: "5 figures with 2 heavy weapons", specialRules: [] },
+        burners: { name: "Burners", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 10, composition: "5 figures with 2 flame weapons", specialRules: [TRAITS.flameWeapon] },
+        stormSquad: { name: "Storm Squad", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 11, composition: "5 figures", specialRules: [TRAITS.jump, { name: "Temperamental equipment", description: "Each time the unit activates roll 1D6. On a 1 they lose 1 Cohesion." }] },
+        orcatics: { name: "Orcatics", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 7, composition: "6 figures", specialRules: [TRAITS.erratic, TRAITS.specialist] },
+        bombBeasts: { name: "Bomb beasts", keyword: SQUAD, move: "random", assault: { modifier: 1, antiTank: null }, cohesion: 6, points: 7, composition: "???", specialRules: [{ name: "Bomb run", description: "When activated, squad can only take a move action. Roll 1D6. On any roll but a 1 they move that many inches towards the closest visible enemy unit. On a 1 they instead move 1D6” towards the nearest unit regardless of sides." }, { name: "Blow up", description: "If at any point during the bomb beasts activation they are within 2” of an enemy they are destroyed. The enemy takes damage equal to the remaining Cohesion of the beast. Vehicles take one hit per Cohesion point with +0 AT" }] },
+        oinkers: { name: "Oinkers", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 10, composition: "5 mounted figures", specialRules: [TRAITS.cavalry] },
+        grimMoonSquad: { name: "Grim Moon Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 12, composition: "5 figures with 2 heavy weapons", specialRules: [] },
+        doomSkullzSquad: { name: "Doom Skullz Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 2, long: 0, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 14, composition: "5 figures with 3 heavy weapons", specialRules: [{ name: "Custom Guns", description: "Any hit roll that rolls doubles inflicts 1 point of Penetrating Damage (" + TRAITS.penetratingDamage.description + ") on both firer and target. This is in addition to any damage inflicted by the attack otherwise and applies even if the shot missed" }] },
+        orcElites: { name: "Orc Elites", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: 1 }], assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 12, composition: "5 figures", specialRules: [] },
+        megaSquad: { name: "Mega Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 8, points: 14, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
+        boss: { name: "Boss", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 1 }, cohesion: 8, points: 10, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero] },
+        gunBoss: { name: "Gun Boss", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 1, battle: -1, long: null, antiTank: +1 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 12, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero] },
+        bannerBearer: { name: "Banner Bearer", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 8, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.leadership, TRAITS.unique] },
+        psiOrc: { name: "Psi-Orc", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 13, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.psionic, { name: "Unstable", description: " Each time the Psi-orc is activated roll 2D6. On a double 1 the unit is destroyed as the Psi-orc has a fatal meltdown." }], psionicLevel: 2, psionicLists: [PSIONIC_POWERS_LIST.spaceOrcs] },
+        chiefMek: { name: "Chief Mek", keyword: INDIVIDUAL, move: 4, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 1, antiTank: 2 }, cohesion: 7, points: 10, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.unique, { name: "Prototype", description: "If the attack roll is doubles, roll another shot against the same target. This can trigger multiple times. The weapon cannot be fired for the rest of the battle. If the roll is a double 1 the weapon explodes, killing the Mek." }] },
+        hugeBoss: { name: "Huge Boss", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 9, points: 16, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership, TRAITS.unique] },
+        gunBike: { name: "Gun Bike", keyword: VEHICLE, move: 7, firepower: [{ firefight: 3, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: null }, cohesion: 6, points: 12, composition: "1 vehicle", specialRules: [TRAITS.open, TRAITS.wheeled, TRAITS.lightVehicle, ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine, TRAITS.forwardFiring, { name: "Short range AT", description: "Firepower Anti-Tank is +0 at 9”, but otherwise -." }] }, //TODO: How to handle random movement
+        gunTrack: { name: "Gun Track", keyword: VEHICLE, move: 4, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 6, points: 14, composition: "1 vehicle", specialRules: [TRAITS.open, TRAITS.tracked, TRAITS.lightVehicle, ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine] }, //TODO: How to handle random movement
+        burnTruck: { name: "Burn Truck", keyword: VEHICLE, move: 5, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: null }, cohesion: 6, points: 12, composition: "1 vehicle", specialRules: [TRAITS.open, TRAITS.wheeled, ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine, TRAITS.flameWeapon, TRAITS.bypassCover, { name: "Big ole fuel tank", description: "If an incoming shot rolls a double 6 to hit, the vehicle is destroyed automatically" }] }, //TODO: How to handle random movement
+        gunBuggy: { name: "Gun Buggy", keyword: VEHICLE, move: 5, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 6, points: 13, composition: "1 vehicle", specialRules: [TRAITS.open, TRAITS.wheeled, TRAITS.lightVehicle, ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine] }, //TODO: How to handle random movement
+        orcabot: { name: "Orcabot", keyword: VEHICLE, move: 4, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 2 }, armour: { front: 10, side: 8, rear: 8 }, points: 14, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Orcish programming", description: "The first time the unit is activated, it functions normally. Afterwards, it must turn in a random direction each time it is activated and must fire at the closest enemy target to its front 90 degrees. If it moves, it must move in the direction it is facing at full speed." }] },
+        killStomper: { name: "Kill Stomper", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, armour: { front: 8, side: 7, rear: 7 }, points: 16, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
+        superKillStomper: { name: "Super Kill Stomper", keyword: VEHICLE, move: 5, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 1, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: 4, antiTank: 1 }, armour: { front: 9, side: 7, rear: 7 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
+        battleTransport: { name: "Battle Transport", keyword: VEHICLE, move: 12, armour: { front: 9, side: 8, rear: 8 }, points: 8, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, { name: "Readily Available", description: "The Battle Transport only counts as 1 vehicle when building your army." }, { name: "Transport Capacity (6)", description: TRAITS.transportCapacity }] },
+        crushSmasher: { name: "Crush Smasher", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 1 }], armour: { front: 9, side: 8, rear: 8 }, points: 14, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, TRAITS.forwardFiring] },
+        clawTank: { name: "Claw Tank", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 1 }], armour: { front: 9, side: 9, rear: 8 }, points: 16, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, { name: "Clawed Grabbers", description: "Infantry that assault the tank take 2 points of damage if they fail to destroy the tank." }] },
+        crushRoller: { name: "Crush Roller", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 0 }], armour: { front: 9, side: 9, rear: 8 }, points: 18, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, { name: "Spiked Roller", description: "The tank can move through enemy Squads. Roll 3D6. For each 4+ the squad takes 1 Penetrating Damage: " + TRAITS.penetratingDamage.description }] },
+        burnerTank: { name: "Burner Tank", keyword: VEHICLE, move: 10, firepower: [{ firefight: 2, battle: null, long: null, antiTank: 0 }], armour: { front: 9, side: 9, rear: 8 }, points: 15, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, TRAITS.flameWeapon, TRAITS.bypassCover] },
+        smashTank: { name: "Smash Tank", keyword: VEHICLE, move: 8, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 2 }], armour: { front: 10, side: 9, rear: 8 }, points: 18, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, TRAITS.highExplosive, TRAITS.forwardFiring] },
+        pullBeamCannon: { name: "Pull Beam Cannon", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 15, composition: "1 artillery weapon with 3 crew", specialRules: [{ name: "Pull Beam", description: "Can only target vehicles and buildings. On a hit, a building is struck with +4 AT. Vehicles are struck with +2 AT and pulled 1D6” towards the gun. Light vehicles are damaged normally." }, TRAITS.fieldArtillery, ARMY_SPECIAL_RULES.spaceOrcs.goblinMalfunction] },
+        pestCatapult: { name: "Pest Catapult", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: null, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 14, composition: "1 artillery weapon with 3 crew", specialRules: [TRAITS.indirectFire, TRAITS.fieldArtillery, ARMY_SPECIAL_RULES.spaceOrcs.goblinMalfunction] },
+        crashCannon: { name: "Crash Cannon", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 15, composition: "1 artillery weapon with 3 crew", specialRules: [{ name: "Scatter", description: "If the hit roll is a double, roll to hit against the closest unit (either side) within 6”, even if not in sight. This can occur multiple times." }, TRAITS.fieldArtillery, ARMY_SPECIAL_RULES.spaceOrcs.goblinMalfunction] }
+    },
+    validator: [
+        {
+            description: "You must take at least one Individual with Boss in their title.",
+            validate: units => {
+                for (let i = 0; i < units.length; i++) {
+                    let unit = units[i];
+                    if (unit.stats.keyword === INDIVIDUAL && unit.stats.name.includes("Boss")) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        },
+        {
+            description: "You may take up to 1 Individual per Squad.",
+            validate: units => {
+                let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return individuals.length <= squads.length;
+            }
+        },
+        {
+            description: "For every Squad you may take up to 1 supporting unit (a Light Vehicle, Walker or Field Artillery unit). Armoured Vehicles count as 2 supporting units.",
+            validate: units => {
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+                let armoredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.armour != null && !unit.stats.specialRules.includes(TRAITS.walker) && unit.stats.name != "Battle Transport");
+                let battleTransports = units.filter(unit => unit.stats.name === "Battle Transport"); //Handles battle transport being edge case in armoured vehicles 
+                let otherSupportUnits = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.cohesion != null || unit.stats.specialRules.includes(TRAITS.walker) || unit.stats.keyword === FIELD_ARTILLERY);
+                let totalSupportUnits = armoredVehicles.length * 2 + battleTransports.length + otherSupportUnits.length;
+
+                return totalSupportUnits <= squads.length;
+            }
+        }
+    ]
+};
+const starKnights = {
+    name: "Star Knights (Grimdark)",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.starKnights, imperials: ARMY_SPECIAL_RULES.imperials.imperials }, //TODO: How to handle Star Knight variants
+    psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, starKnights: PSIONIC_POWERS_LIST.starKnights },
+    upgrades: {
+        ...GENERIC_UPGRADES,
+        antiTankGrenades: { name: "Anti Tank Grenades", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Increase Assault Anti Tank by +1." },
+        stormRounds: { name: "Storm Rounds", keyword: SQUAD, statBonuses: { firepower: { firefight: 1, battle: 0, long: -1 }, points: 2 }, description: "Only available to units with Firepower at all three range bands. Modify existing Firepower by +1 / +0 / -1" }, //TODO: handle restriction
+        gravSuspendedWeapons: { name: "Grav Suspended Weapons", keyword: SQUAD, statBonuses: { move: 1, points: 2 }, description: "If Move is 4”, increase to 5”." },
+        fusionRifle: { name: "Fusion Rifle", keyword: SQUAD, statBonuses: { points: 3 }, description: "Add +1 to Anti Tank shooting within 9”." },
+        honouredVeteran: { name: "Honoured Veteran", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 1, points: 3 }, description: "Increase Close Combat and Cohesion by +1." },
+        multiWeapon: { name: "Multi-Weapon", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Each time the unit shoots it may use its standard fire option or fire with +0/+0/- Firepower and +0 Anti Tank factors." }, //TODO: Maybe add as another firepower element?
+        venerableBlade: { name: "Venerable Blade", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `In Close Combat, the character gains Penetrating Damage (${TRAITS.penetratingDamage.description}). If fighting an opposing Individual, inflict 1 additional point of damage on a tie or win.` },
+        masterCraftedPistol: { name: "Master Crafted Pistol", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: `Gain Anti Personnel (${TRAITS.antiPersonnel.description}) within 9”.` },
+        warRelic: { name: "War Relic", keyword: INDIVIDUAL, statBonuses: { points: 4 }, description: `At the start of each Star Knight turn, the closest Imperial unit within 9” and sight gain Damage Mitigation (${TRAITS.damageMitigation.description}) until the start of the next Star Knight turn The Character does not have to be activated for this to take effect.` },
+        vowsOfVengeance: { name: "Vows of Vengeance", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `The Individual gains Limited Intelligence (${TRAITS.limitedIntelligence.description}). Add +1 to Close Combat against Individuals.` },
+        assaultGrenadeLaunchers: { name: "Assault Grenade Launchers", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Armoured Vehicles only. Single use. Select an Infantry unit within 6” and roll 3D6. Inflict 1 damage per die showing a 4+.` }, //TODO: Handle requirement of vehicle being armoured
+        defenceSystem: { name: "Defence System", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Armoured Vehicles only. Each time the vehicle suffers damage roll 1D6. On a 5-6 the damage is negated and the Defence System is unavailable for the rest of the battle.` }, //TODO: Handle requirement of vehicle being armoured
+        assaultTransport: { name: "Assault Transport", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Armoured Vehicles only. Transport only. Units that disembark receive +1 to Close Combat rolls for the rest of the current and all of the following enemy turn.` }, //TODO: Handle requirement of vehicle being armoured
+        reconLink: { name: "Recon Link", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Light Vehicles only. All Star Knight units gain +1 to hit when firing at targets within 12” and sight of the vehicle with the Recon Link.` }, //TODO: Handle requirement of vehicle being light
+        optimisedSteering: { name: "Optimised Steering", keyword: VEHICLE, statBonuses: { points: 1 }, description: `For Light Vehicles only. The vehicle can turn one additional time per Activation.` } //TODO: Handle requirement of vehicle being light
+    },
+    units: {
+        tacticalSquad: { name: "Tactical Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures with 1 heavy weapon", specialRules: [] },
+        assaultSquad: { name: "Assault Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 1 }, cohesion: 9, points: 14, composition: "3 figures", specialRules: [] },
+        jumpSquad: { name: "Jump Squad", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 1 }, cohesion: 9, points: 16, composition: "3 figures", specialRules: [TRAITS.jump] },
+        heavyWeaponSquadVersatile: { name: "Heavy Weapon Squad - Versatile", keyword: SQUAD, move: 4, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "3 figures with 2 heavy weapons", specialRules: [] },
+        heavyWeaponSquadRapidFire: { name: "Heavy Weapon Squad - Rapid Fire", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "3 figures with 2 heavy weapons", specialRules: [TRAITS.antiPersonnel, { name: "Split Fire", description: "May fire at two different targets. Each attack is conducted as +0 / +0 / +0 without Anti Personnel. Select both targets before rolling." }] },
+        reconSquad: { name: "Recon Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.infiltration, TRAITS.specialist, { name: "Recon Armour", description: "Does not benefit from Environmental Suit rule." }] },
+        reconSnipers: { name: "Recon Snipers", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.infiltration, TRAITS.specialist, TRAITS.sniping, { name: "Recon Armour", description: "Does not benefit from Environmental Suit rule." }] },
+        breachSquad: { name: "Breach Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 5, antiTank: 3 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
+        breachAssaultSquad: { name: "Breach Assault Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 6, antiTank: 4 }, cohesion: 9, points: 13, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
+        officer: { name: "Officer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership] },
+        reciter: { name: "Reciter", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Litanies", description: "Knight units within 6” add +1 to close combat rolls." }] },
+        bannerBearer: { name: "Banner Bearer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Banner", description: "Imperial units that Regroup within 6” regain 1 additional point of Cohesion." }] },
+        medicalSpecialist: { name: "Medical Specialist", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Healer", description: "Take a Carry Out Action. One Imperial squad within 3” regains 1 point of Cohesion." }] },
+        technicalSpecialist: { name: "Technical Specialist", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.repair] },
+        psionicKnight: { name: "Psionic Knight", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 21, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 3, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.starKnights] },
+        captain: { name: "Captain", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 10, points: 18, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership, TRAITS.unique] },
+        battleRobot: { name: "Battle Robot", keyword: VEHICLE, move: 6, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 2, antiTank: null }, armour: { front: 8, side: 7, rear: 7 }, points: 15, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.robot] },
+        tacticalCombatArmourTactical: { name: "Tactical Combat Armour - Tactical", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 3, antiTank: 2 }, armour: { front: 9, side: 8, rear: 7 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
+        tacticalCombatArmourSupport: { name: "Tactical Combat Armour - Support", keyword: VEHICLE, move: 6, firepower: [{ type: ANTI_INFANTRY, firefight: 0, battle: 0, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, armour: { front: 9, side: 8, rear: 7 }, points: 21, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
+        landCrusherAssaultTank: { name: "Land Crusher Assault Tank", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 3 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (3)", description: TRAITS.transportCapacity.description }] },
+        assailantMediumTank: { name: "Assailant Medium Tank", keyword: VEHICLE, move: 10, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 1, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 1, long: 1, antiTank: 2 }], armour: { front: 10, side: 10, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] },
+        punisherAssaultGun: { name: "Punisher Assault Gun", keyword: VEHICLE, move: 8, firepower: [{ firefight: 2, battle: 2, long: 0, antiTank: 2 }], armour: { front: 10, side: 10, rear: 9 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive, TRAITS.siegeGun, TRAITS.forwardFiring] },
+        firestormMissileTank: { name: "Firestorm Missile Tank", keyword: VEHICLE, move: 10, firepower: [{ type: ANTI_INFANTRY, firefight: 1, battle: 1, long: 1, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 0, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: TRAITS.indirectFire, description: TRAITS.indirectFire.description + " (above 9” only)" }] },
+        chargerTroopCarrier: { name: "Charger Troop Carrier", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], armour: { front: 10, side: 8, rear: 8 }, points: 10, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (4)", description: TRAITS.transportCapacity.description }] },
+        stingerTroopCarrier: { name: "Stinger Troop Carrier", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 15, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (3)", description: TRAITS.transportCapacity.description }] },
+        claymoreTankHunter: { name: "Claymore Tank Hunter", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], armour: { front: 10, side: 8, rear: 8 }, points: 18, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.forwardFiring] },
+        strikeSpeeder: { name: "Strike Speeder", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 4 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 7, points: 15, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover, TRAITS.forwardFiring] },
+        strikeSpeederMonsoonRockets: { name: "Strike Speeder - Monsoon Rockets", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 0 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 7, points: 15, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover, TRAITS.forwardFiring] }, //Handles monsoon rockets variant
+        lightSpeeder: { name: "Light Speeder", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 7, points: 10, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover, TRAITS.forwardFiring] },
+        bikeSquad: { name: "Bike Squad", keyword: VEHICLE, move: 12, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 7, points: 14, composition: "2 figures", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.wheeled, TRAITS.forwardFiring] },
+        bikeSquadHover: { name: "Bike Squad - Hover", keyword: VEHICLE, move: 12, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 7, points: 16, composition: "2 figures", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover, TRAITS.forwardFiring] },
+        gunMotorcycl: { name: "Gun Motorcycle", keyword: VEHICLE, move: 8, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 15, composition: "1 figure", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.wheeled] },
+        scorpionHeavyWeaponsPlatform: { name: "MK1 Scorpion Heavy Weapons Platform", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: 1, battle: 2, long: 1, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 9, points: 14, composition: "1 artillery weapon with crew", specialRules: [TRAITS.fieldArtillery, TRAITS.limitedIntelligence] },
+        fencerAntiTankPlatform: { name: "MK2 Fencer Anti-Tank platform", keyword: FIELD_ARTILLERY, move: 3, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 4 }], assault: { modifier: -1, antiTank: null }, cohesion: 9, points: 14, composition: "1 tracked artillery weapon with crew figures", specialRules: [TRAITS.mobileArtillery, TRAITS.limitedIntelligence] }
+    },
+    validator: [
+        {
+            description: "If all Vehicles selected are Unarmoured Vehicles and you do not select any Field Artillery, you may take as many Vehicles as you have Squads. Otherwise the total number of Vehicles and Field Artillery must be less than the number of Squads.",
+            validate: units => {
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+                let armoredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.armour != null);
+                let unarmouredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.cohesion != null);
+                let fieldArtillery = units.filter(unit => unit.stats.keyword === FIELD_ARTILLERY);
+                let vehiclesAndFieldArtillery = armoredVehicles.length + unarmouredVehicles.length + fieldArtillery.length;
+
+                if (unarmouredVehicles.length > 0 || fieldArtillery.length > 0) {
+                    return vehiclesAndFieldArtillery < squads.length;
+                }
+                return armoredVehicles.length <= squads.length;
+            }
+        },
+        {
+            description: "You may select up to 1 Character for every Squad.",
+            validate: units => {
+                let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return individuals <= squads;
+            }
+        }
+    ]
+};
+/*
+Template for army lists.
+    template: {
+    name: "",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.armyName, {name:"", description:""} },
+    psionicPowers: { foo: PSIONIC_POWERS_LIST.foo },
+    upgrades: {
+        ...GENERIC_UPGRADES,
+        upgrade: { name: "foo", keyword: SQUAD, statBonuses: { points: 1 }, description: "foo" },
+    },
+    units: {
+        squad: { name: "foo", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 10, composition: "5 figures", specialRules: [] },
+        leader: { name: "bar", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero] },
+        psyker: { name: "bar", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.foo] },
+        tank: { name: "baz", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] }
+    },
+    validator: [
+        {
+            description: "The number of Individuals taken must be less than the number of Squads.",
+            validate: units => {
+                let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return individuals.length < squads.length;
+            }
+        }
+    ]
+};
+*/
 export const ARMY_LISTS = {
-    imperialLegion: {
-        name: "Imperial Legion (Grimdark)",
-        armySpecialRules: { ...ARMY_SPECIAL_RULES.imperialLegion, imperials: ARMY_SPECIAL_RULES.imperials.imperials },
-        psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, imperialLegion: PSIONIC_POWERS_LIST.imperialLegion },
-        upgrades: {
-            ...GENERIC_UPGRADES,
-            antiTankSpecialists: { name: "Anti Tank specialists", keyword: SQUAD, statBonuses: { points: 1 }, description: "Close Combat Anti Tank becomes +2 regardless of prior score." }, //TODO: Overwriting stat with statbonus value
-            humanBomb: { name: "Human Bomb", keyword: SQUAD, statBonuses: { points: 5 }, description: "Add 1 figure to the unit. At any point when the unit is active, remove the figure and select an enemy squad or vehicle (but not Individual) within 6”. Line of sight is not required. Roll 1D6: On a 1-3 the attack fails. On a 4-6 a squad takes 2 points of damage while a vehicle takes a +1 AT hit." },
-            indoctrinationOfficer: { name: "Indoctrination officer", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 1, points: 5 }, description: "Add +1 to Cohesion and Assault values. If the squad is on an objective of any kind, it may not move from that position." },
-            preacher: { name: "Preacher", keyword: SQUAD, statBonuses: { points: 3 }, description: "When taking the Regroup action regain 1 additional point of Cohesion." },
-            veteranSergeant2: { name: "Veteran sergeant", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, points: 3 }, description: "Increase Assault factor by +1." },
-            swagger: { name: "Swagger", keyword: COMMAND, statBonuses: { points: 2 }, description: "When the unit is eliminated, it receives a Lucky Escape roll exactly as it was a Hero. If it is already a Hero, you can roll two dice for Lucky Escapes. Once the Unit has been saved once, the ability is lost for the rest of the game." },
-            plasmaPistol: { name: "Plasma Pistol", keyword: COMMAND, statBonuses: { points: 1 }, description: "When shooting at 9” range or less, you may choose to overcharge the pistol. Add +1 to Firepower and gain Penetrating Damage. If the hit roll is doubles, the shooter takes 1 point of damage." },
-            urbanWarfare: { name: "Urban Warfare", keyword: COMMAND, statBonuses: { points: 1 }, description: "The unit gains the Anti Personnel Trait:" + TRAITS.antiPersonnel.description },
-            rallying: { name: "Rallying", keyword: COMMAND, statBonuses: { points: 3 }, description: "When activated, the unit can give up an Action to recover 1 Cohesion to an Imperial infantry unit within 6” and sight. This can be done with both Actions during a Full Activation. The same target unit can be selected twice." },
-            antiTankGrenades: { name: "Anti tank grenades", keyword: COMMAND, statBonuses: { points: 1 }, description: "Close Combat Anti Tank becomes +1 regardless of current value." }, //TODO: Implement value overriding
-            trackGuards: { name: "Track guards", keyword: VEHICLE, statBonuses: { points: 2 }, description: "If the vehicle is immobilised due to an attack, the Track guards are destroyed instead. A second immobilising hit takes effect normally. Tracked vehicle only. Single use." },
-            flameThrower: { name: "Flame thrower", keyword: VEHICLE, statBonuses: { points: 3 }, description: "When shooting at infantry within 6”, attacks Bypass Cover." },
-            smokeDischarger: { name: "Smoke discharger", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Can be discharged at the end of a Move Action. The vehicle receives Soft Cover until the end of the next enemy Phase but cannot fire this activation. Single Use." },
-            urbanWarfareUpgrade: { name: "Urban Warfare Upgrade", keyword: VEHICLE, statBonuses: { armour: { rear: 1 }, points: 2 }, description: "Add +1 to Rear Armour value." },
-            adverseTerrainUpgrade: { name: "Adverse Terrain Upgrade", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Can move up to 6” when moving in Bad Going. Tracked vehicle only." }
-        },
-        units: {
-            conscriptSquad: { name: "Conscript Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 6, points: 7, composition: "6 figures", specialRules: [] },
-            tacticalSquad: { name: "Tactical Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures with 1 heavy weapon", specialRules: [] },
-            penalSquad: { name: "Penal squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 9, composition: "6 figures", specialRules: [{ name: "Redemption", desription: "If assaulting a unit with an Assault factor of +2 or higher, the unit inflicts 1 additional point of Combat Shock" }, TRAITS.specialist, { name: "Do or die", description: "Penal squads cannot take the Regroup action" }] },
-            unmarkedTrooperSquad: { name: "Unmarked Trooper Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [{ name: "Enthusiasm", description: " When unmarked troopers lose a close combat, the player can choose to have them fight again immediately instead of retreating. You can do this once per close combat. The final result determines retreats" }, TRAITS.specialist] },
-            veteranSquad: { name: "Veteran Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 13, composition: "5 figures", specialRules: [] },
-            shockTroopers: { name: "Shock Troopers", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, cohesion: 9, points: 14, composition: " figures with 1 heavy weapon", specialRules: [] },
-            assaultSquad: { name: "Assault Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 8, composition: "6 figures", specialRules: [] },
-            jumpAssaultSquad: { name: "Jump Assault Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [TRAITS.jump] }, //NOTE: this handles optional jump trait for assault squad. Might have some problem in campaign play if options can be taken ber game basis.
-            semiHumanSquad: { name: "Semi-human Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [TRAITS.specialist] },
-            ogreAssaultSquad: { name: "Ogre Assault Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 10, points: 12, composition: "3 large humanoids", specialRules: [TRAITS.specialist, TRAITS.simpleMinded] },
-            tacticalCavalrySection: { name: "Tactical Cavalry Section", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 7, points: 9, composition: "4 mounted figures", specialRules: [TRAITS.cavalry] },
-            shockCavalrySection: { name: "Shock Cavalry Section", keyword: SQUAD, move: 7, firepower: [{ firefight: null, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 2 }, cohesion: 7, points: 12, composition: "4 mounted figures", specialRules: [TRAITS.cavalry, { name: "Punishing", description: " If the unit wins a round of close combat, the enemy takes 1 additional point of damage" }] },
-            halflingSniperTeam: { name: "Halfling Sniper Team", keyword: SQUAD, move: 4, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 10, composition: "4 figures", specialRules: [TRAITS.sniping, TRAITS.specialist] },
-            heavyWeaponTeam: { name: "Heavy Weapon Team", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 15, composition: "6 figures with 2 heavy weapons", specialRules: [] },
-            sanctionedPsionic: { name: "Sanctioned Psionic", keyword: COMMAND, move: 6, firepower: [{ firefight: null, battle: null, long: null, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 11, composition: "1 figure", specialRules: [{ name: "Unstable psionics", description: "Each time the unit uses a Psionic Power, lose 1 cohesion" }, TRAITS.individual, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.imperialLegion] },
-            battlePsionic: { name: "Battle Psionic", keyword: COMMAND, move: 6, firepower: [{ firefight: null, battle: null, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 18, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.psionic], psionicLevel: 2, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.imperialLegion] },
-            commandSquad: { name: "Command Squad", keyword: COMMAND, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 10, composition: "3 figures", specialRules: [TRAITS.leadership] },
-            cavalryCommandSquad: { name: "Cavalry Command Squad", keyword: COMMAND, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 10, composition: "3 mounted figures", specialRules: [TRAITS.leadership, TRAITS.cavalry] },
-            officer: { name: "Officer", keyword: COMMAND, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 10, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership] },
-            scoutWalker: { name: "Scout Walker", keyword: VEHICLE, move: 8, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 0, antiTank: null }, armour: { front: 8, side: 7, rear: 7 }, points: 15, composition: "1 walker", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Poor Protection", description: "Assault attacks against the scout walker get +1 to anti-tank" }] },
-            frontlineTank: { name: "Frontline Tank", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type:ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive] },
-            frontlineTankVanquish: { name: "Frontline Tank - Vangquish", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 2, long: 2, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] }, //TODO: Handles vanquish upgrade
-            frontlineTankAutocannon: { name: "Frontline Tank - Autocannon", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 0 }], armour: { front: 11, side: 10, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] },
-            siegeTank: { name: "Siege Tank", keyword: VEHICLE, move: 5, firepower: [{ type: ANTI_INFANTRY, firefight: 3, battle: 3, long: null, antiTank: null }, { type: ANTI_TANK, firefight: 2, battle: 0, long: null, antiTank: 3 }], armour: { front: 12, side: 10, rear: 8 }, points: 28, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive, TRAITS.siegeGun] },
-            assaultArtillery: { name: "Assault Artillery", keyword: VEHICLE, move: 6, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 3, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 0, long: 0, antiTank: 1 }], armour: { front: 10, side: 8, rear: 7 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive, TRAITS.forwardFiring] },
-            hippogriffMortarTank: { name: "Hippogriff Mortar Tank", keyword: VEHICLE, move: 6, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: null }], armour: { front: 10, side: 8, rear: 7 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.indirectFire, { name: "Shrapnel", description: "When firing indirectly, targets in hard cover are counted as soft cover." }] },
-            flameTank: { name: "Flame Tank", keyword: VEHICLE, move: 9, firepower: [{ type: ANTI_INFANTRY, firefight: 3, battle: 0, long: null, antiTank: null }, { type: ANTI_TANK, firefight: 2, battle: null, long: null, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 19, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.flameWeapon, TRAITS.bypassCover, { name: "Fuel tanks", decriptio: "When hit from the sides, treat minor damage as major" }] },
-            pegasusAmphibiousAssaultVehicle: { name: "Pegasus Amphibioius Assault Vehicle", keyword: VEHICLE, move: 9, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 7 }, points: 15, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (4)", description: TRAITS.transportCapacity.description + ". Can transport only Imperial Legion troops" }, { name: "Amphibious", description: "", }] },
-            centaurReconVehicle: { name: "Centaur Recon Vehicle", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 12, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured] },
-            infantryFightingVehicle: { name: "Infantry Fighting Vehicle", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 1, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (4)", description: TRAITS.transportCapacity.description + ". Can transport only Imperial Legion troops." }] },
-            strikeSpeeder: { name: "Strike Speeder", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: -1, antiTank: null }, cohesion: 6, points: 14, composition: "1 grav vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover] },
-            mortarTeam: { name: "Mortar team", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: null, battle: 0, long: 0, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 15, composition: "1 artillery weapon with crew", specialRules: [TRAITS.indirectFire, TRAITS.fieldArtillery] },
-            quadGun: { name: "Quad Gun", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: null, battle: 1, long: 1, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 17, composition: "1 artillery weapon with crew", specialRules: [TRAITS.indirectFire, TRAITS.fieldArtillery, { name: "Conventional fire", description: "When fired directly, firepower is NA / +0 / +0" }] },
-            tunnelMortar: { name: "Tunnel Mortar", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: null, battle: 0, long: 0, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 18, composition: "1 artillery weapon with crew", specialRules: [TRAITS.indirectFire, TRAITS.fieldArtillery, TRAITS.bypassCover] },
-            scorpionHeavyWeaponsPlatform: { name: "MK1 Scorpion Heavy Weapons Platform", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: 1, battle: 2, long: 1, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 14, composition: "1 artillery weapon with crew", specialRules: [TRAITS.fieldArtillery] },
-            fencerGunCarrier: { name: "MK1 Fencer Gun Carrier", keyword: FIELD_ARTILLERY, move: 3, firepower: [{ firefight: 2, battle: 2, long: 0, antiTank: 0 }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 14, composition: "1 tracked artillery weapon with crew figures", specialRules: [TRAITS.mobileArtillery] }
-        },
-        validator: [
-            {
-                description: "Each Squad allows you to select up to 1 Armoured Vehicle.",
-                validate: units => {
-                    let vehicles = units.filter(unit => (unit.stats.keyword === VEHICLE && unit.stats.armour != null));
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-                    return vehicles <= squads;
-                }
-            },
-            {
-                description: "Each Squad allows you to select either 1 Field Artillery or 1 Unarmoured Vehicle.",
-                validate: units => {
-                    let vehiclesOrArtillery = units.filter(unit => (unit.stats.keyword === VEHICLE && unit.stats.cohesion != null) || (unit.stats.keyword === FIELD_ARTILLERY));
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return vehiclesOrArtillery <= squads;
-                }
-            },
-            {
-                description: "Each Squad allows you to select up to 1 Command Rank unit.",
-                validate: units => {
-                    let commanders = units.filter(unit => unit.stats.keyword === COMMAND);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return commanders <= squads;
-                }
-            },
-            {
-                description: "The army must include at least one unit with the Leadership trait.",
-                validate: units => {
-                    return units.some(
-                        unit => unit.stats.specialRules?.includes(TRAITS.leadership)
-                    )
-                }
-            }
-        ]
-    },
-    crawlerHorde: {
-        name: "The Crawler Hordes (Grimdark)",
-        armySpecialRules: { ...ARMY_SPECIAL_RULES.crawlerHorde },
-        psionicPowers: { crawlerHorde: PSIONIC_POWERS_LIST.crawlerHorde },
-        upgrades: {
-            searingChemicals: { name: "Searing Chemicals", keyword: SQUAD, statBonuses: { points: 2 }, description: "Gain the Flame Weapon Trait up to 9”: " + TRAITS.flameWeapon.description + " No effect if the unit lacks ranged attacks." },
-            acidBlood: { name: "Acid Blood", keyword: SQUAD, statBonuses: { points: 2 }, description: "When the unit takes damage in close combat (except from Combat Shock) roll 1D6 per point of Cohesion lost. Every 6 inflicts 1 point of Penetrating Damage (" + TRAITS.penetratingDamage.description + ") on the enemy unit" },
-            psiChannel: { name: "Psi Channel", keyword: SQUAD, statBonuses: { points: 1 }, description: "The unit counts as Psionic for the purpose of unit vulnerabilities. It adds +1 to hit and assault rolls against Psionic units" },
-            bugChampion: { name: "Bug Champion", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 2, points: 2 }, description: "Add +2 to Cohesion. Assaults gain +1 and Penetrating Damage (" + TRAITS.penetratingDamage.description + "). The assault bonus is lost if an enemy rolls a natural 6 in close combat against the unit." },
-            razorClaws: { name: "Razor Claws", keyword: SQUAD, statBonuses: { assault: { modifier: 1, antiTank: 1 }, points: 1 }, description: "+1 to Assault and Assault Anti-Tank (becomes +0 if currently -)" }, //TODO: handle granting of factor
-            bioPlasma: { name: "Bio-Plasma", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Gain Bypass Cover: " + TRAITS.bypassCover.description },
-            crushingGrip: { name: "Crushing Grip", keyword: INDIVIDUAL, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Assault Anti-Tank +1" },
-            spineLauncher: { name: "Spine Launcher", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Not subject to Combat Shock" },
-            waveShield: { name: "Wave Shield", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Gain Damage Mitigation except against Psionic units. Damage Mitigation: " + TRAITS.damageMitigation.description },
-            berserker: { name: "Berserker", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "If the unit loses or ties a close combat, fight another round again immediately." }
-        },
-        units: {
-            crawlerWarriors: { name: "Crawler Warriors", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 5, antiTank: 0 }, cohesion: 8, points: 13, composition: "3 large bugs", specialRules: [] },
-            crawlerWarriorsAcidCannon: { name: "Crawler Warriors - Acid Cannon", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 4, antiTank: 0 }, cohesion: 8, points: 15, composition: "3 large bugs with 1 heavy weapon", specialRules: [] },
-            mindSlaves: { name: "Mind Slaves", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 9, composition: "4-5 figures", specialRules: [{ name: "Mind Control", description: "Mind Slaves must always remain within 6” of another Crawler unit. Each time the unit is activated while more than 6” from other Crawlers, it immediately loses 2 Cohesion." }, { name: "Captives", description: " Mind Slave units do not count as Crawlers and do not benefit from any Crawler rules. They do not benefit from any army special rules regardless of what army the unit originally was part of." }] },
-            centaurSquad: { name: "Centaur Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 9, points: 15, composition: "2 bulky figures", specialRules: [] },
-            huntingBrood: { name: "Hunting Brood", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: null }, cohesion: 7, points: 8, composition: "5 figures", specialRules: [TRAITS.agile] },
-            clawedHorrors: { name: "Clawed Horrors", keyword: SQUAD, move: 7, assault: { modifier: 3, antiTank: 0 }, cohesion: 7, points: 9, composition: "5 figures", specialRules: [TRAITS.agile, { name: "Charge", description: "+1 to Assault when initiating combat." }] },
-            wingedBrood: { name: "Winged Brood", keyword: SQUAD, move: 7, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 1, antiTank: null }, cohesion: 7, points: 10, composition: "5 figures", specialRules: [{ name: "Descent", description: "Instead of setting up normally, at the end of the first game turn roll 2D6 and place them anywhere within that many inches of your table edge." }, TRAITS.jump] },
-            critters: { name: "Critters", keyword: SQUAD, move: 7, assault: { modifier: 1, antiTank: null }, cohesion: 6, points: 6, composition: "1 Swarm", specialRules: [{ name: "Chomp chomp", description: "Automatically regain 1 Cohesion each time they engage in assault combat. This is applied before resolving the combat. Not subject to Combat Shock." }, { name: "Fresh salad", description: "Critters do not count plant features as Bad Going and will clear a path as wide as the unit as they move through." }] },
-            mindBlaster: { name: "Mind Blaster", keyword: INDIVIDUAL, move: 3, firepower: [{ firefight: 0, battle: 1, long: 2, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 7, points: 15, composition: "1 big bug", specialRules: [TRAITS.individual, { name: "Psionic bolts", description: "Attack is considered to be psionic for the purpose of units specially affected by this" }, { name: "Psionic shield", description: " 1 point of Damage Mitigation (" + TRAITS.damageMitigation.description + "), unless the attacking unit is Psionic." }] },
-            sneakerKiller: { name: "Sneaker Killer", keyword: INDIVIDUAL, move: 6, assault: { modifier: 4, antiTank: 1 }, cohesion: 8, points: 15, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.agile, { name: "Evasive", description: "All incoming attacks are -1 to hit" }, { name: "Hunter", description: "Enemy Heroes that lose a round of close combat take +1 damage." }] },
-            bioArtillery: { name: "Bio Artillery", keyword: INDIVIDUAL, move: 3, firepower: [{ firefight: null, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 15, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.indirectFire, TRAITS.ponderous] },
-            screamer: { name: "Screamer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: 0, long: 2, antiTank: 2 }], assault: { modifier: 5, antiTank: 3 }, cohesion: 12, points: 29, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.damageMitigation, TRAITS.terror, TRAITS.simpleMinded, { name: "Monster", description: "Size 3" }] },
-            crawlerOverseer: { name: "Crawler Overseer", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 2, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 6, antiTank: 2 }, cohesion: 9, points: 25, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.terror, TRAITS.regenerate, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.crawlerHorde] },
-            crawlerOverseerAcidCannon: { name: "Crawler Overseer - Acid Cannon", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 2 }], assault: { modifier: 6, antiTank: 2 }, cohesion: 9, points: 25, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.terror, TRAITS.regenerate, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.crawlerHorde] }, //Handles acid cannon option
-        },
-        validator: [
-            {
-                description: "The number of Individuals taken must be less than the number of Broods.",
-                validate: units => {
-                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return individuals < squads;
-                }
-            }
-        ]
-    },
-    hellServants: {
-        name: "Hell Servants (Grimdark)",
-        armySpecialRules: { ...ARMY_SPECIAL_RULES.hellServants },
-        psionicPowers: { hellServants: PSIONIC_POWERS_LIST.hellServants },
-        upgrades: {
-            ...GENERIC_UPGRADES,
-            prehensileMutations: { name: "Prehensile mutations", keyword: SQUAD, statBonuses: { assault:{modifier: 1}, points: 1 }, description: "Increase Close Combat by 1." },
-            loathsomeForm: { name: "Loathsome Form", keyword: SQUAD, statBonuses: { points: 2 }, description: `Gain Regeneration (${TRAITS.regenerate.description}), Terror (${TRAITS.terror.description}), and Ponderous (${TRAITS.ponderous.description}).` },
-            witchBolts: { name: "Witch Bolts", keyword: SQUAD, statBonuses: { points: 3 }, description: `Gain Bypass Cover ${TRAITS.bypassCover.description}. Unit counts as Psionic for the purpose of unit vulnerabilities.` },
-            hellishArmour: { name: "Hellish Armour", keyword: SQUAD, statBonuses: { points: 2 }, description: "Gain Damage Mitigation: " + TRAITS.damageMitigation.description },
-            aspiringChampion: { name: "Aspiring Champion", keyword: SQUAD, statBonuses: { assault:{modifier:1}, cohesion:1, points: 3 }, description: "Increase Close Combat and Cohesion by +1." },
-            wings: { name: "Wings", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Gain the Jump Trait." },
-            vileBlade: { name: "Vile Blade", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Gain Penetrating Damage Trait in Close Combat: " + TRAITS.penetratingDamage.description },
-            demonicBlade: { name: "Demonic Blade", keyword: INDIVIDUAL, statBonuses: { points: 5 }, description: "Only usable by a Hero. If both dice roll a 6 in Close Combat, the target is slain automatically (though Lucky Escape rolls still apply)." }, //TODO: upgrade restriction to heroes only
-            hellAura: { name: "Hell Aura", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `Gain the Terror (${TRAITS.terror.description}) and Demonic Traits (${TRAITS.demonic.description})` },
-            demonicFlames: { name: "Demonic Flames", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Gain Flame Weapon Trait within 9”: " + TRAITS.flameWeapon.description },
-            acidicPresence: { name: "Acidic Presence", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Enemy infantry within 6” are treated as being in Dangerous Terrain." },
-            hellConstruction: { name: "Hell Construction", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Each time the vehicle is activated roll 1D6 for each damage result it has suffered in any order you choose. Any roll of a 6 repairs the damage but no more rolls are made this turn." },
-            rustedBlades: { name: "Rusted Blades", keyword: VEHICLE, statBonuses: { points: 2 }, description: "If assaulted, a unit that fails to inflict damage takes 1 point of Penetrating Damage: " + TRAITS.penetratingDamage.description }
-        },
-        units: {
-            hellKnightBreachSquad: { name: "Hell Knight Breach Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 5, antiTank: 3 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, TRAITS.damageMitigation, TRAITS.specialist] },
-            hellKnightSquad: { name: "Hell Knight Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figureswith 1 heavy weapon", specialRules: [TRAITS.environmentSuit] },
-            hellKnightHeavyWeaponsSquad: { name: "Hell Knight Heavy Weapons Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 2, long: 1, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "3 figures with 2 heavy weapons", specialRules: [TRAITS.environmentSuit] },
-            vultureKnights: { name: "Vulture Knights", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.jump, TRAITS.unique] },
-            veteranHellKnights: { name: "Veteran Hell Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 10, points: 18, composition: "3 figures with 1 heavy or special weapon", specialRules: [TRAITS.environmentSuit, TRAITS.infiltration] },
-            rottedKnights: { name: "Rotted Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, {name:"Feels Nothing", description: `The unit has Damage Mitigation (${TRAITS.damageMitigation.description}) against ranged and close combat attacks that fail to kill the unit outright, but not combat shock or any other source.`}] },
-            berserkerKnights: { name: "Berserker Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, {name:"Rip and Tear", description: "When the unit wins a close combat, the enemy takes 1 additional point of damage."}] },
-            covenKnights: { name: "Coven Knigths", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, {name: "Incantations", description: "The unit counts as Psionic for the purpose of unit vulnerabilities. It may engage in Psionic Duels as a Level 1 unit but takes no damage on a loss."}] },
-            automatonKnights: { name: "Automaton Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 13, composition: "3 figures", specialRules: [{name:"Beyond Death", description:"Does not take damage from Hazardous terrain. Cannot take the Carry Out or Regroup Actions."}, {name:"Vulnerable to Psionics", description: "All attacks from Psionic enemies receive +1 to hit / close combat rolls."}, TRAITS.specialist] },
-            noiseKnights: { name: "Noise Knights", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.environmentSuit, TRAITS.antiPersonnel, {name:"Anti Psionic", description:"Whenever a non Sorcerer Psionic uses a power within 15”, the Noise Knights initiate a Psychic Duel automatically before the power is activated. The Noise Knights count as Level 2 and do not take damage if they lose."}] },
-            demonicKnights: { name: "Demonic Knights", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.demonic, {name:"Penetrating Damage (close combat only)", description: TRAITS.penetratingDamage.description}] },
-            destroyerCult: { name: "Destroyer Cult", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: 2, antiTank: 2 }, cohesion: 10, points: 20, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.unique, TRAITS.ponderous, TRAITS.specialist] },
-            beastSlaves: { name: "Beast Slaves", keyword: SQUAD, move: 5, assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 7, composition: "6 figures", specialRules: [] },
-            houndPack: { name: "Hound Pack", keyword: SQUAD, move: 6, assault: { modifier: 2, antiTank: null }, cohesion: 7, points: 8, composition: "4 figures", specialRules: [TRAITS.agile] },
-            hellDwarves: { name: "Hell Dwarves", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 2, long: 1, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 15, composition: "4 figures with 2 heavy weapons", specialRules: [{name:"Steady Advance", description: "If receiving a Limited Activation, the unit can Move before performing a Carry Out Action"}] },
-            hellLord: { name: "Hell Lord", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 5, antiTank: 1 }, cohesion: 10, points: 19, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership, TRAITS.unique] },
-            hellChampion: { name: "Hell Champion", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 9, points: 16, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero] },
-            sorcererKnight: { name: "Sorcerer Knight", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 3, psionicLists: [PSIONIC_POWERS_LIST.hellServants] },
-            demonicLord: { name: "Demonic Lord", keyword: INDIVIDUAL, move: 6, assault: { modifier: 5, antiTank: 3 }, cohesion: 10, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.demonic, TRAITS.terror, {name:"Demonic Armour", description: "Each time the unit takes damage roll 2D6. For each die showing a 5-6 reduce the damage taken by 1. Does not apply against Psionic attacks."}] },
-            tacticalCombatArmourAncient: { name: "Tactical Combat Armour - Ancient", keyword: VEHICLE, move: 6, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: {modifier: 2, antiTank: 3},armour: { front: 9, side: 8, rear: 7 }, points: 19, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
-            tacticalCombatArmourBerserker: { name: "Tactical Combat Armour - Berserker", keyword: VEHICLE, move: 6, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 1, long: 1, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: {modifier: 3, antiTank: 1},armour: { front: 9, side: 8, rear: 7 }, points: 19, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, {name:"Frenzied", description: "When firing, the unit must always select the closest visible enemy."}] },
-            demonicGunCrab: { name: "Demonic Gun Crab", keyword: VEHICLE, move: 4, firepower: [{ firefight: 0, battle: 1, long: 0, antiTank: 2 }], assault: {modifier: 2, antiTank: 2},armour: { front: 10, side: 10, rear: 8 }, points: 23, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.highExplosive, TRAITS.forwardFiring] },
-            slaughterStorm: { name: "Slaughter Storm", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: null }], assault: {modifier: 4, antiTank: 1}, armour: { front: 8, side: 8, rear: 8 }, points: 17, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured, {name:"Frenzied", description:"When firing, the unit must always select the closest visible enemy."}, {name:"Assault Vehicle", descriptin:"Engaes in close combat like a walker."}] },
-            landCrusherAssaultTank: { name: "Land Crusher Assault Tank", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 3 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (3)", description: TRAITS.transportCapacity.description }] },
-            assailantMediumTank: { name: "Assailant Medium Tank", keyword: VEHICLE, move: 10, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 1, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 1, long: 1, antiTank: 2 }], armour: { front: 10, side: 10, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] },
-            chargerTroopCarrier: { name: "Charger Troop Carrier", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], armour: { front: 10, side: 8, rear: 8 }, points: 10, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (4)", description: TRAITS.transportCapacity.description }] },
-            bikeSquad: { name: "Bike Squad", keyword: VEHICLE, move: 12, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 7, points: 14, composition: "2 figures", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.wheeled, TRAITS.forwardFiring] }
-        },
-        validator: [
-            {
-                description: "You may take up to 1 Individuals for every Squads.",
-                validate: units => {
-                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return individuals.length <= squads.length;
-                }
-            },
-            {
-                description: "The number of vehicles must be less than the number of Squads.",
-                validate: units => {
-                    let vehicles = units.filter(unit => unit.stats.keyword === VEHICLE);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return vehicles.length < squads.length;
-                }
-            }
-        ]
-    },
-    killBots: {
-        name: "Killbots (Grimdark)",
-        armySpecialRules: { ...ARMY_SPECIAL_RULES.killBots, noPsionics: { name: "No psionics", description: "Kill Bots cannot use Psionics under any circumstances" } },
-        psionicPowers: {},
-        upgrades: {
-            repeatingGaussRifle: { name: "Repeating Gauss Rifle", keyword: SQUAD, statBonuses: { points: 1 }, description: "Add Anti Personnel trait: " + TRAITS.antiPersonnel.description },
-            heavyGaussBeam: { name: "Heavy Gauss Beam", keyword: SQUAD, statBonuses: { firepower: { antiTank: 1 }, points: 2 }, description: "Ranged Anti Tank is increased by 1. Units with ranged attacks only." },
-            heavyCorrosiveVibrations: { name: "Heavy Corrosive Vibrations", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Assault Anti Tank becomes +1 if currently - and is increased by 1 otherwise." },
-            sinisterAura: { name: "Sinister Aura", keyword: SQUAD, statBonuses: { points: 1 }, description: "Gain Terror trait: " + TRAITS.terror.description },
-            anointedByTheAncient: { name: "Anointed by the Ancient", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 1, points: 2 }, description: "Increase Close Combat and Cohesion by +1." },
-            timeDistortionSphere: { name: "Time Distortion Sphere", keyword: INDIVIDUAL, statBonuses: { points: 5 }, description: "Single Use. Receive one less Limited Activations this turn. Next turn, receive one more Full Activations." },
-            gaussScatterBeam: { name: "Gauss Scatter Beam", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Gain Anti Personnel trait: " + TRAITS.antiPersonnel.description },
-            liquidMetal: { name: "Liquid Metal", keyword: INDIVIDUAL, statBonuses: { cohesion: 1, points: 4 }, description: "+1 to Cohesion and Damage Mitigation: " + TRAITS.damageMitigation.description },
-            phaseBlade: { name: "Phase Blade", keyword: INDIVIDUAL, statBonuses: { assault: { modifier: 1 }, points: 3 }, description: "Gain Penetrating Damage in close Combat (" + TRAITS.penetratingDamage.description + "). +1 to Assault." },
-            phaseNullificationBeacon: { name: "Phase Nullification Beacon", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Distortion Field extends to 9” instead of 6”." }
-        },
-        units: {
-            raiderBots: { name: "Raider-Bots", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 15, composition: "4 figures", specialRules: [] },
-            heavyGunBots: { name: "Heavy Gun Bots", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 2, long: 1, antiTank: 1 }], assault: { modifier: 1, antiTank: null }, cohesion: 8, points: 18, composition: "3 figures", specialRules: [] },
-            slaughterBots: { name: "Slaughter Bots", keyword: SQUAD, move: 6, assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 14, composition: "4 figures", specialRules: [TRAITS.agile] },
-            cursedBots: { name: "Cursed Bots", keyword: SQUAD, move: 6, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 3, antiTank: 3 }, cohesion: 8, points: 20, composition: "4 figures", specialRules: [{ name: "Anti Psionic", description: "+1 to hit and close combat against Psionic units" }, TRAITS.penetratingDamage] },
-            skitterBots: { name: "Skitter Bots", keyword: SQUAD, move: 7, assault: { modifier: 0, antiTank: 0 }, cohesion: 6, points: 8, composition: "4-6 small figures", specialRules: [TRAITS.agile, { name: "Disruption", description: "Attacks against units within 6” of Skitter Bots receive a +1 bonus to hit/close combat." }] },
-            ghostBots: { name: "Ghost Bots", keyword: SQUAD, move: 6, assault: { modifier: 4, antiTank: 0 }, cohesion: 8, points: 16, composition: "2 large figures", specialRules: [{ name: "Phase", description: "Ghosts can move through units and terrain. They cannot end a move within a solid terrain feature" }] },
-            hoverGunBots: { name: "Hover Gun Bots", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: 2, long: 2, antiTank: 2 }], assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 23, composition: "2 figures", specialRules: [TRAITS.hover] },
-            killBotLord: { name: "Kill Bot Lord", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 1 }], assault: { modifier: 1, antiTank: 2 }, cohesion: 10, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Energy Weapon", description: "Close Combat damage is Penetrating: " + TRAITS.penetratingDamage.description }] },
-            killBotAssassin: { name: "Kill Bot Assassin", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 10, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.antiPersonnel, { name: "Hunter", description: "Enemy Heroes that lose a round of close combat take +1 damage." }] },
-            gunBotPlatform: { name: "Gun Bot Platform", keyword: VEHICLE, move: 7, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: 3 }], armour: { front: 8, side: 7, rear: 7 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured] },
-            killStrider: { name: "Kill Strider", keyword: VEHICLE, move: 6, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 1, antiTank: null }, armour: { front: 9, side: 8, rear: 7 }, points: 16, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.flameWeapon, TRAITS.siegeGun] },
-            skullCrawler: { name: "Skull Crawler", keyword: VEHICLE, move: 4, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 1, antiTank: null }, armour: { front: 10, side: 10, rear: 10 }, points: 30, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.ponderous, TRAITS.forwardFiring, { name: "Two shots", description: "May shoot twice. Decare both targets before rolling. Targets must be within 6” of each other." }] },
-            deathPyramid: { name: "Death Pyramid", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 2, long: null, antiTank: 1 }], armour: { front: 11, side: 11, rear: 11 }, points: 30, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured, TRAITS.ponderous, { name: "Arc weapon", description: "May attack 2 different units each turn. Must always target the closest visible enemies." }] }
-        },
-        validator: [
-            {
-                description: "You may take up to 1 support unit and 1 individual for every 2 squads. Every 5 squads allow selecting 1 additional support unit OR individual.",
-                validate: units => {
-                    let support = units.filter(unit => unit.stats.keyword === VEHICLE);
-                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-                    let extraSupportOrIndividuals = Math.floor(squads.length / 5);
-                    let allowedSupportOrIndividuals = Math.floor(squads.length / 2);
-                    let excessSupport = support.length - allowedSupportOrIndividuals;
-                    excessSupport = excessSupport < 0 ? 0 : excessSupport;
-                    let excessIndividuals = individuals.length - allowedSupportOrIndividuals;
-                    excessIndividuals = excessIndividuals < 0 ? 0 : excessIndividuals;
-                    return excessSupport + excessIndividuals > extraSupportOrIndividuals ? false : true;
-                }
-            }
-        ]
-    },
-    spaceElves: {
-        name: "Space Elves (Grimdark)",
-        armySpecialRules: { ...ARMY_SPECIAL_RULES.spaceElves },
-        psionicPowers: { spaceElves: PSIONIC_POWERS_LIST.spaceElves },
-        upgrades: {
-            ...GENERIC_INDIVIDUAL_UPGRADES, ...GENERIC_VEHICLE_UPGRADES,
-            ancientWarAxe: { name: "Ancient War Axe", keyword: INDIVIDUAL, statBonuses: { assault: { modifier: 1 }, points: 2 }, description: "+1 to Assault" },
-            duellingBlades: { name: "Duelling Blades", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "When fighting Individuals in Close Combat, add +1 to Assault and +1 to any damage inflicted." },
-            psionicAssail: { name: "Psionic Assail", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Whenever the unit would inflict Combat Shock, inflict 1 additional point. Unit counts as Psionic for the purpose of traits and vulnerabilities." },
-            runeCasting: { name: "Rune Casting", keyword: INDIVIDUAL, statBonuses: { points: 3 }, description: "Twice per battle you can reroll a failed die roll for this character and use either result." },
-            searingPistol: { name: "Searing Pistol", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Gain +1 Anti Tank when firing at Firefight range." },
-            psionicLinkCrystal: { name: "Psionic Link Crystal", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Walkers only. If within 9” of a friendly Psionic, add +1 to hit rolls when firing." },
-            flameGuns: { name: "Flame Guns", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Walkers only. Gain Flame Weapon Trait at Firefight range." }, //TODO: unit type restriction
-            hyperReactiveEngines: { name: "Hyper Reactive Engines", keyword: VEHICLE, statBonuses: { points: 1 }, description: "Armoured vehicles only. . The vehicle can turn 45 degrees for free when it is activated." }, //TODO: unit type restriction
-            diffusionField: { name: "Diffusion Field", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Armoured vehicles only. Every time the vehicle is hit by a ranged attack roll 1D6. On a 6 the hit has no effect." }, //TODO: unit type restriction
-            psiShockEmitter: { name: "Psi-Shock Emitter", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Armoured vehicles only. Close assaulting infantry that fail to destroy the vehicle take 1 point of damage." }, //TODO: unit type restriction
-            psionicDisarrayCaster: { name: "Psionic Disarray Caster", keyword: VEHICLE, statBonuses: { assault: { modifier: 1 }, points: 1 }, description: "Light vehicles only. +1 to Assault" }, //TODO: unit type restriction
-            adaptiveTerrainEvasion: { name: "Adaptive Terrain Evasion", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Light vehicles only. When placed on top of terrain features, all incoming fire is -1 to hit." }, //TODO: unit type restriction
-            crystalTargetingArray: { name: "Crystal Targeting Array", keyword: VEHICLE, statBonuses: { firepower: { firefight: 1, battle: 1, long: 1 }, points: 3 }, description: "Light vehicles only. +1 Firepower at all ranges." } //TODO: unit type restriction
-        },
-        units: {
-            roverSquad: { name: "Rover Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: 2, long: 2, antiTank: null }], assault: { modifier: 1, antiTank: null }, cohesion: 6, points: 15, composition: "3 figures", specialRules: [TRAITS.infiltration, TRAITS.agile] },
-            homeDefenceSquad: { name: "Home Defence Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: 1, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 7, points: 10, composition: "4 figures", specialRules: [] },
-            homeDefenceAssaultSquad: { name: "Home Defence Assault Squad", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, cohesion: 7, points: 9, composition: "4 figures", specialRules: [] },
-            homeDefenceAssaultSquadFlamer: { name: "Home Defence Assault Squad - Flamer", keyword: SQUAD, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, cohesion: 7, points: 11, composition: "4 figures", specialRules: [TRAITS.flameWeapon] },
-            vengeanceWarCult: { name: "Vengeance War Cult", keyword: SQUAD, move: 7, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 1 }, cohesion: 7, points: 15, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Intense Firefight", description: "Fires simultaneously with attacker when being attacked in firefights." }] },
-            deathTollWarCult: { name: "Death-Toll War Cult", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 2, long: 2, antiTank: 3 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 7, points: 23, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Accurate", description: "Ignore Light Vehicle hit penalty." }] },
-            killBirdWarCult: { name: "Kill Bird War Cult", keyword: SQUAD, move: 9, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 1 }, cohesion: 7, points: 12, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, TRAITS.jump, { name: "Redeploy", description: "When taking a double move the unit can be placed anywhere within 24”." }] },
-            venomStingWarCult: { name: "Venom-Sting War Cult", keyword: SQUAD, move: 7, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 0 }, cohesion: 7, points: 14, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Punishing", description: "If the unit wins a round of close combat, the enemy takes 1 additional point of damage." }] },
-            graveScreamWarCult: { name: "Grave-Scream War Cult", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 0 }, cohesion: 7, points: 15, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Psionic Charge", description: "When initiating Close Combat, inflict an additional point of Combat Shock." }] },
-            voidLeapWarCult: { name: "Void-Leap War Cult", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 7, points: 16, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Void Movement", description: " When the unit activates, it may move to any location within 9”. This does NOT use a Move action but the unit cannot use Void movement and regular Movement in the same activation." }] },
-            fireLashWarCult: { name: "Fire-Lash War Cult", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: 2 }], assault: { modifier: 2, antiTank: 2 }, cohesion: 7, points: 15, composition: "3 figures", specialRules: [ARMY_SPECIAL_RULES.spaceElves.warCult, { name: "Fusion Weapons", description: "+1 to Anti Tank within 9”." }] },
-            elvenWarDemon: { name: "Elven War Demon", keyword: INDIVIDUAL, move: 6, assault: { modifier: 8, antiTank: 4 }, cohesion: 15, points: 30, composition: "1 figure", specialRules: [TRAITS.unique, TRAITS.leadership, TRAITS.individual, TRAITS.specialist, { name: "Extra Dimensional", description: "Considered to be a Demon for the purpose of unit abilities. Is not affected by Hazardous Terrain and is unaffected by any virus or poison." }] },
-            grandSeer: { name: "Grand Seer", keyword: INDIVIDUAL, move: 4, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 1 }, cohesion: 8, points: 25, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.unique, TRAITS.damageMitigation, TRAITS.leadership, TRAITS.psionic], psionicLevel: 4, psionicLists: [PSIONIC_POWERS_LIST.spaceElves] },
-            elfSorcerer: { name: "Elf Sorcerer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 1 }, cohesion: 8, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.damageMitigation, TRAITS.psionic], psionicLevel: 2, psionicLists: [PSIONIC_POWERS_LIST.spaceElves] },
-            wraithSeer: { name: "Wraith Seer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 1 }, cohesion: 8, points: 16, composition: "1 figure", specialRules: [TRAITS.individual, { name: "Repair (Elf vehicles only)", description: TRAITS.repair.description }, { name: "Psionic aptitude", description: "Can engage and defend in Psionic Duels (L2) and count as Psionic, but cannot use powers." }] },
-            adventurer: { name: "Adventurer", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 1 }], assault: { modifier: 3, antiTank: 2 }, cohesion: 8, points: 19, composition: "1 figure", specialRules: [TRAITS.hero, TRAITS.individual, { name: "Premonition", description: "After both sides finish deploying, you may move the Adventurer to anywhere within your deployment zone." }] },
-            warCultChampion: { name: "War Cult Champion", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 5, antiTank: 1 }, cohesion: 9, points: 24, composition: "1 figure", specialRules: [TRAITS.hero, TRAITS.individual, { name: "Arcane Weapons", description: "If an assault ends in a Draw, the Champion takes no damage and the enemy takes an additional point of damage." }] },
-            soulStrider: { name: "Soul Strider", keyword: VEHICLE, move: 8, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: 3, antiTank: 1 }, armour: { front: 8, side: 8, rear: 8 }, points: 24, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Scything Fire", description: "In firefights, damage against infantry targets is +1." }] },
-            scoutStrider: { name: "Scout Strider", keyword: VEHICLE, move: 9, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: 0, antiTank: null }, armour: { front: 8, side: 8, rear: 8 }, points: 21, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Duplicate targeting array", description: "The Strider may fire twice per turn, but may not target the same unit twice." }, { name: "Power screened crew", description: "Each time the Strider is hit by any attack roll 2D6. On a total of 11 or 12, the pilot is killed and the Strider is destroyed." }, { name: "Poor protection", description: "Assault attacks against the scout walker get +1 to anti-tank." }] },
-            deathWalkers: { name: "Death Walkers", keyword: VEHICLE, move: 6, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 3 }], assault: { modifier: 1, antiTank: 2 }, armour: { front: 8, side: 8, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.ponderous, { name: "Kill Beam", description: "Ranged attacks that penetrate vehicle armour roll twice on the damage table and pick the highest result." }] },
-            firehawkGravTank: { name: "Firehawk Grav Tank", keyword: VEHICLE, move: 12, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], armour: { front: 10, side: 9, rear: 9 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured, { name: "Transport Capacity (3)", desription: TRAITS.transportCapacity }] },
-            fireChannel: { name: "Fire Channel", keyword: VEHICLE, move: 12, firepower: [{ firefight: 0, battle: 1, long: 2, antiTank: 2 }], armour: { front: 10, side: 9, rear: 9 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured] },
-            serpent: { name: "Serpent", keyword: VEHICLE, move: 12, firepower: [{ type: ANTI_INFANTRY, firefight: 0, battle: 0, long: null, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 6, points: 15, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.hover, TRAITS.open] },
-            hyperBike: { name: "Hyper Bike", keyword: VEHICLE, move: 14, firepower: [{ firefight: 0, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 6, points: 14, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.hover, TRAITS.open, TRAITS.forwardFiring, TRAITS.antiPersonnel] },
-            displacerCannon: { name: "Displacer Cannon", keyword: FIELD_ARTILLERY, move: 4, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 20, composition: "1 artillery and 2 crew", specialRules: [TRAITS.mobileArtillery, { name: "Destructive", description: "A double 5 or double 6 to hit reduces the target to 0 Cohesion regardless of Damage Mitigation or current Cohesion." }, { name: "Slow build up", description: "The unit cannot move and fire." }] },
-            laserPlatform: { name: "Laser Platform", keyword: FIELD_ARTILLERY, move: 4, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 15, composition: "1 artillery and 2 crew", specialRules: [TRAITS.mobileArtillery] },
-            plasmaPlatform: { name: "Plasma Platform", keyword: FIELD_ARTILLERY, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 16, composition: "1 artillery and 2 crew", specialRules: [TRAITS.mobileArtillery, { name: "Charge Up", description: " If the unit does not move, Firepower is +2 / +2 / +2 and AT is +2." }] },
-            vibrationCannon: { name: "Vibration Cannon", keyword: FIELD_ARTILLERY, move: 4, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 16, composition: "1 artillery and 2 crew", specialRules: [TRAITS.mobileArtillery, TRAITS.siegeGun, { name: "Beam Weapon", description: "When firing draw a line that stops when blocked by terrain. All units under the line are attacked, including friendlies." }] }
-        },
-        validator: [
-            {
-                description: "You may take up to 1 vehicle per Squad.",
-                validate: units => {
-                    let vehicles = units.filter(unit => unit.stats.keyword === VEHICLE);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return vehicles.length <= squads.length;
-                }
-            },
-            {
-                description: "You may take up to 1 Field Artillery for every 2 Squads.",
-                validate: units => {
-                    let fieldArtillery = units.filter(unit => unit.stats.keyword === FIELD_ARTILLERY);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return fieldArtillery.length * 2 <= squads.length;
-                }
-            },
-            {
-                description: "You may take up to 1 Individual per Squad.",
-                validate: units => {
-                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return individuals.length <= squads.length;
-                }
-            }
-        ]
-    },
-    spaceOrcs: {
-        name: "Space Orcs (Grimdark)",
-        armySpecialRules: { ...ARMY_SPECIAL_RULES.spaceOrcs, orcishOrganisation: { name: "Orcish organisation", description: "Players who prefer a more “horde” look to their orcs can add 0-2 figures to each squad as they see fit. This does not modify the stats of the unit in any way." }, spaceOrcPsionics: { name: "Space Orc Psionics", description: "Space Orcs MUST use Space Orcs psionic table, they cannot use general psionic abilities. All Space Orc Psionic damage is Penetrating Damage (" + TRAITS.penetratingDamage.description + "). Orc Psionics always target the closest enemy unit and must use a power if an enemy is visible. You are not required to activate Psionic units however." } },
-        psionicPowers: { spaceOrcs: PSIONIC_POWERS_LIST.spaceOrcs },
-        upgrades: {
-            ...GENERIC_UPGRADES,
-            bigOrc: { name: "Big Orc", keyword: SQUAD, statBonuses: { points: 2 }, description: "The squad adds +1 to Assault rolls when it is attacking (but not when defending)." },
-            ardLadz: { name: "Ard Ladz", keyword: SQUAD, statBonuses: { points: 1 }, description: "The squad gains Damage Mitigation: " + TRAITS.damageMitigation.description },
-            mek: { name: "Mek", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 2 }, description: "If the squad does not have an assault anti tank value, it receives a +0. If it has an assault anti tank value, it is increased by 1." }, //TODO: Handle granting of stat
-            bigBanner: { name: "bigBanner", keyword: SQUAD, statBonuses: { points: 5 }, description: "The Unit gains the Leadership trait: " + TRAITS.leadership.description },
-            extraShooty: { name: "Extra Shooty", keyword: SQUAD, statBonuses: { points: 2 }, description: "The squad gains Anti Personnel up to 24” range: " + TRAITS.antiPersonnel.description },
-            goblinAssistant: { name: "Goblin Assistant", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Each time the character shoots or fights in Close Combat roll 1D6. On a 1 the character rolls at a -1 penalty, on a 5-6 roll at a +1 bonus. If the character loses a Close Combat round, the Assistants are killed." },
-            megaCrushArm: { name: "Mega Crush Arm", keyword: INDIVIDUAL, statBonuses: { assault: { antiTank: 1 }, points: 2 }, description: "Add +1 to Close Combat Anti Tank. Close Combat attacks are Penetrating Damage: " + TRAITS.penetratingDamage.description },
-            customGun: { name: "Custom Gun", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "You may reroll one die each time you shoot, however if a hit roll is a double 1 before or after rerolling, the weapon explodes: The character takes 2 points of damage and cannot shoot for the rest of the game." },
-            stateOfTheOrcCybernetics: { name: "State of the Orc Cybernetics", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: `Gain Damage Mitigation (${TRAITS.damageMitigation.description}), Limited Intelligence (${TRAITS.limitedIntelligence.description}) and Simple Minded (${TRAITS.simpleMinded.description}).` },
-            bigOleBomb: { name: "Big Ole Bomb", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `Usable once per battle as a ranged attack. Requires a Fire action. Attacks up to 9” with +2 Firepower, High Explosive (${TRAITS.highExplosive.description}) and +3 Anti Tank.` },
-            superFastGuns: { name: "Super Fast Guns", keyword: VEHICLE, statBonuses: { firepower: { firefight: 1, battle: -1, long: -1 }, assault: { modifier: 1 }, points: 1 }, description: "Light Vehicles only. Increase 9” Firepower by 1. Reduce 24” and Long Firepower by 1. Close Combat is increased by +1" }, //TODO: Make upgrade available only for light vehicles
-            somewhatArmouredCompartment: { name: "Somewhat Armoured Compartment", keyword: VEHICLE, statBonuses: { cohesion: 1, points: 2 }, description: "Light vehicles only. Cohesion +1" }, //TODO: Make upgrade available only for light vehicles 
-            goblinRiders: { name: "Goblin Riders", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Light vehicles only. If the vehicle is destroyed, replace it with a Goblin Squad." },//TODO: Make upgrade available only for light vehicles 
-            extraBigGrabbyClaw: { name: "Extra Big Grabby Claw", keyword: VEHICLE, statBonuses: { assault: { antiTank: 2 }, points: 2 }, description: "Walkers only. Close Combat Anti Tank is increased by 2." }, //TODO Make upgrade available only for walkers
-            powerShield: { name: "Power Shield", keyword: VEHICLE, statBonuses: { points: 2 }, description: "Walkers only. Activates when taking a hit with AT +0 or greater. Roll 1D6 for each hit. On a 5-6 the hit is negated completely. On a 2-4 nothing happens. On a 1 the walker is paralysed and cannot be activated next Orc turn." },//TODO Make upgrade available only for walkers
-            overchargedLaser: { name: "Overcharged Laser", keyword: VEHICLE, statBonuses: { points: 2 }, description: "When shooting at Armoured vehicles, add 2 to Anti Tank but reduce Firepower by 1." },//TODO Make upgrade available only for walkers
-            boltedOnJunk: { name: "Bolted On Junk", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Armoured vehicles only. The first damage result the vehicle suffers from any source is ignored." }, //Make upgrade available only for armoured vehicles
-            slimmedDownArmour: { name: "Slimmed Down Armour", keyword: VEHICLE, statBonuses: { move: 3, armour: { side: -1, rear: -1 }, points: 1 }, description: "Armoured vehicles only. Reduce Flank and Side Armour by 1 point each. Increase Speed by +3”." },//Make upgrade available only for armoured vehicles
-            hugePileOfAmmo: { name: "Huge Pile Of Ammo", keyword: VEHICLE, statBonuses: { points: 2 }, description: `Armoured vehicles only. Gain Anti Personnel (${TRAITS.antiPersonnel.description}). If the vehicle is Knocked Out, it is always treated as Catastrophic Damage.` }//Make upgrade available only for armoured vehicles
-        },
-        units: {
-            goblins: { name: "Goblins", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 5, points: 5, composition: "8 figures", specialRules: [{ name: "Distracting", description: "Enemies withn 9” of goblins cannot fire at a more distant target." }, TRAITS.agile] },
-            venomBitesSquad: { name: "Venom Bites Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 9, composition: "6 figures", specialRules: [] },
-            angrySunSquad: { name: "Angry Sun Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 8, composition: "6 figures", specialRules: [] },
-            goreHammerSquad: { name: "Gore Hammer Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [{ name: "Cunning", description: "Gore Hammer and Kommando units are not counted for the purpose of the Disregard for Planning army rule." }] },
-            gruntzSquad: { name: "Gruntz Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: null, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 10, composition: "6 figures", specialRules: [] },
-            primitiveWarband: { name: "Primitive Warband", keyword: SQUAD, move: 6, assault: { modifier: 3, antiTank: null }, cohesion: 8, points: 8, composition: "6 figures", specialRules: [] },
-            goreHammerKommandos: { name: "Gore Hammer Kommandos", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 2 }, cohesion: 9, points: 11, composition: "5 figures", specialRules: [TRAITS.infiltration, { name: "Cunning", description: "Gore Hammer and Kommando units are not counted for the purpose of the Disregard for Planning army rule." }] },
-            tankBreakies: { name: "Tank Breakies", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: -1, antiTank: +1 }], assault: { modifier: 2, antiTank: 2 }, cohesion: 8, points: 10, composition: "5 figures with 2 heavy weapons", specialRules: [] },
-            burners: { name: "Burners", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 1 }, cohesion: 8, points: 10, composition: "5 figures with 2 flame weapons", specialRules: [TRAITS.flameWeapon] },
-            stormSquad: { name: "Storm Squad", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 11, composition: "5 figures", specialRules: [TRAITS.jump, { name: "Temperamental equipment", description: "Each time the unit activates roll 1D6. On a 1 they lose 1 Cohesion." }] },
-            orcatics: { name: "Orcatics", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 7, composition: "6 figures", specialRules: [TRAITS.erratic, TRAITS.specialist] },
-            bombBeasts: { name: "Bomb beasts", keyword: SQUAD, move: "random", assault: { modifier: 1, antiTank: null }, cohesion: 6, points: 7, composition: "???", specialRules: [{ name: "Bomb run", description: "When activated, squad can only take a move action. Roll 1D6. On any roll but a 1 they move that many inches towards the closest visible enemy unit. On a 1 they instead move 1D6” towards the nearest unit regardless of sides." }, { name: "Blow up", description: "If at any point during the bomb beasts activation they are within 2” of an enemy they are destroyed. The enemy takes damage equal to the remaining Cohesion of the beast. Vehicles take one hit per Cohesion point with +0 AT" }] },
-            oinkers: { name: "Oinkers", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 10, composition: "5 mounted figures", specialRules: [TRAITS.cavalry] },
-            grimMoonSquad: { name: "Grim Moon Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 12, composition: "5 figures with 2 heavy weapons", specialRules: [] },
-            doomSkullzSquad: { name: "Doom Skullz Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 2, long: 0, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 14, composition: "5 figures with 3 heavy weapons", specialRules: [{ name: "Custom Guns", description: "Any hit roll that rolls doubles inflicts 1 point of Penetrating Damage (" + TRAITS.penetratingDamage.description + ") on both firer and target. This is in addition to any damage inflicted by the attack otherwise and applies even if the shot missed" }] },
-            orcElites: { name: "Orc Elites", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: 1 }], assault: { modifier: 3, antiTank: 0 }, cohesion: 8, points: 12, composition: "5 figures", specialRules: [] },
-            megaSquad: { name: "Mega Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 8, points: 14, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
-            boss: { name: "Boss", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 1 }, cohesion: 8, points: 10, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero] },
-            gunBoss: { name: "Gun Boss", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 1, battle: -1, long: null, antiTank: +1 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 12, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero] },
-            bannerBearer: { name: "Banner Bearer", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 8, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.leadership, TRAITS.unique] },
-            psiOrc: { name: "Psi-Orc", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 13, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.psionic, { name: "Unstable", description: " Each time the Psi-orc is activated roll 2D6. On a double 1 the unit is destroyed as the Psi-orc has a fatal meltdown." }], psionicLevel: 2, psionicLists: [PSIONIC_POWERS_LIST.spaceOrcs] },
-            chiefMek: { name: "Chief Mek", keyword: INDIVIDUAL, move: 4, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], assault: { modifier: 1, antiTank: 2 }, cohesion: 7, points: 10, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.unique, { name: "Prototype", description: "If the attack roll is doubles, roll another shot against the same target. This can trigger multiple times. The weapon cannot be fired for the rest of the battle. If the roll is a double 1 the weapon explodes, killing the Mek." }] },
-            hugeBoss: { name: "Huge Boss", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 9, points: 16, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership, TRAITS.unique] },
-            gunBike: { name: "Gun Bike", keyword: VEHICLE, move: 7, firepower: [{ firefight: 3, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: null }, cohesion: 6, points: 12, composition: "1 vehicle", specialRules: [TRAITS.open, TRAITS.wheeled, TRAITS.lightVehicle, ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine, TRAITS.forwardFiring, { name: "Short range AT", description: "Firepower Anti-Tank is +0 at 9”, but otherwise -." }] }, //TODO: How to handle random movement
-            gunTrack: { name: "Gun Track", keyword: VEHICLE, move: 4, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 6, points: 14, composition: "1 vehicle", specialRules: [TRAITS.open, TRAITS.tracked, TRAITS.lightVehicle, ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine] }, //TODO: How to handle random movement
-            burnTruck: { name: "Burn Truck", keyword: VEHICLE, move: 5, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: null }, cohesion: 6, points: 12, composition: "1 vehicle", specialRules: [TRAITS.open, TRAITS.wheeled, ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine, TRAITS.flameWeapon, TRAITS.bypassCover, { name: "Big ole fuel tank", description: "If an incoming shot rolls a double 6 to hit, the vehicle is destroyed automatically" }] }, //TODO: How to handle random movement
-            gunBuggy: { name: "Gun Buggy", keyword: VEHICLE, move: 5, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 6, points: 13, composition: "1 vehicle", specialRules: [TRAITS.open, TRAITS.wheeled, TRAITS.lightVehicle, ARMY_SPECIAL_RULES.spaceOrcs.boostedEngine] }, //TODO: How to handle random movement
-            orcabot: { name: "Orcabot", keyword: VEHICLE, move: 4, firepower: [{ firefight: 2, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 2 }, armour: { front: 10, side: 8, rear: 8 }, points: 14, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Orcish programming", description: "The first time the unit is activated, it functions normally. Afterwards, it must turn in a random direction each time it is activated and must fire at the closest enemy target to its front 90 degrees. If it moves, it must move in the direction it is facing at full speed." }] },
-            killStomper: { name: "Kill Stomper", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 1 }, armour: { front: 8, side: 7, rear: 7 }, points: 16, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
-            superKillStomper: { name: "Super Kill Stomper", keyword: VEHICLE, move: 5, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 1, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: 4, antiTank: 1 }, armour: { front: 9, side: 7, rear: 7 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
-            battleTransport: { name: "Battle Transport", keyword: VEHICLE, move: 12, armour: { front: 9, side: 8, rear: 8 }, points: 8, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, { name: "Readily Available", description: "The Battle Transport only counts as 1 vehicle when building your army." }, { name: "Transport Capacity (6)", description: TRAITS.transportCapacity }] },
-            crushSmasher: { name: "Crush Smasher", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 1 }], armour: { front: 9, side: 8, rear: 8 }, points: 14, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, TRAITS.forwardFiring] },
-            clawTank: { name: "Claw Tank", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 1 }], armour: { front: 9, side: 9, rear: 8 }, points: 16, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, { name: "Clawed Grabbers", description: "Infantry that assault the tank take 2 points of damage if they fail to destroy the tank." }] },
-            crushRoller: { name: "Crush Roller", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 0 }], armour: { front: 9, side: 9, rear: 8 }, points: 18, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, { name: "Spiked Roller", description: "The tank can move through enemy Squads. Roll 3D6. For each 4+ the squad takes 1 Penetrating Damage: " + TRAITS.penetratingDamage.description }] },
-            burnerTank: { name: "Burner Tank", keyword: VEHICLE, move: 10, firepower: [{ firefight: 2, battle: null, long: null, antiTank: 0 }], armour: { front: 9, side: 9, rear: 8 }, points: 15, composition: "1 vehicle", specialRules: [TRAITS.wheeled, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, TRAITS.flameWeapon, TRAITS.bypassCover] },
-            smashTank: { name: "Smash Tank", keyword: VEHICLE, move: 8, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 2 }], armour: { front: 10, side: 9, rear: 8 }, points: 18, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, ARMY_SPECIAL_RULES.spaceOrcs.ramshackle, TRAITS.highExplosive, TRAITS.forwardFiring] },
-            pullBeamCannon: { name: "Pull Beam Cannon", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: null }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 15, composition: "1 artillery weapon with 3 crew", specialRules: [{ name: "Pull Beam", description: "Can only target vehicles and buildings. On a hit, a building is struck with +4 AT. Vehicles are struck with +2 AT and pulled 1D6” towards the gun. Light vehicles are damaged normally." }, TRAITS.fieldArtillery, ARMY_SPECIAL_RULES.spaceOrcs.goblinMalfunction] },
-            pestCatapult: { name: "Pest Catapult", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: null, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 14, composition: "1 artillery weapon with 3 crew", specialRules: [TRAITS.indirectFire, TRAITS.fieldArtillery, ARMY_SPECIAL_RULES.spaceOrcs.goblinMalfunction] },
-            crashCannon: { name: "Crash Cannon", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 15, composition: "1 artillery weapon with 3 crew", specialRules: [{ name: "Scatter", description: "If the hit roll is a double, roll to hit against the closest unit (either side) within 6”, even if not in sight. This can occur multiple times." }, TRAITS.fieldArtillery, ARMY_SPECIAL_RULES.spaceOrcs.goblinMalfunction] }
-        },
-        validator: [
-            {
-                description: "You must take at least one Individual with Boss in their title.",
-                validate: units => {
-                    for (let i = 0; i < units.length; i++) {
-                        let unit = units[i];
-                        if (unit.stats.keyword === INDIVIDUAL && unit.stats.name.includes("Boss")) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            },
-            {
-                description: "You may take up to 1 Individual per Squad.",
-                validate: units => {
-                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return individuals.length <= squads.length;
-                }
-            },
-            {
-                description: "For every Squad you may take up to 1 supporting unit (a Light Vehicle, Walker or Field Artillery unit). Armoured Vehicles count as 2 supporting units.",
-                validate: units => {
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-                    let armoredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.armour != null && !unit.stats.specialRules.includes(TRAITS.walker) && unit.stats.name != "Battle Transport");
-                    let battleTransports = units.filter(unit => unit.stats.name === "Battle Transport"); //Handles battle transport being edge case in armoured vehicles 
-                    let otherSupportUnits = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.cohesion != null || unit.stats.specialRules.includes(TRAITS.walker) || unit.stats.keyword === FIELD_ARTILLERY);
-                    let totalSupportUnits = armoredVehicles.length * 2 + battleTransports.length + otherSupportUnits.length;
-
-                    return totalSupportUnits <= squads.length;
-                }
-            }
-        ]
-    },
-    starKnights: {
-        name: "Star Knights (Grimdark)",
-        armySpecialRules: { ...ARMY_SPECIAL_RULES.starKnights, imperials: ARMY_SPECIAL_RULES.imperials.imperials }, //TODO: How to handle Star Knight variants
-        psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, starKnights: PSIONIC_POWERS_LIST.starKnights },
-        upgrades: {
-            ...GENERIC_UPGRADES,
-            antiTankGrenades: { name: "Anti Tank Grenades", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Increase Assault Anti Tank by +1." },
-            stormRounds: { name: "Storm Rounds", keyword: SQUAD, statBonuses: { firepower: { firefight: 1, battle: 0, long: -1 }, points: 2 }, description: "Only available to units with Firepower at all three range bands. Modify existing Firepower by +1 / +0 / -1" }, //TODO: handle restriction
-            gravSuspendedWeapons: { name: "Grav Suspended Weapons", keyword: SQUAD, statBonuses: { move: 1, points: 2 }, description: "If Move is 4”, increase to 5”." },
-            fusionRifle: { name: "Fusion Rifle", keyword: SQUAD, statBonuses: { points: 3 }, description: "Add +1 to Anti Tank shooting within 9”." },
-            honouredVeteran: { name: "Honoured Veteran", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 1, points: 3 }, description: "Increase Close Combat and Cohesion by +1." },
-            multiWeapon: { name: "Multi-Weapon", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Each time the unit shoots it may use its standard fire option or fire with +0/+0/- Firepower and +0 Anti Tank factors." }, //TODO: Maybe add as another firepower element?
-            venerableBlade: { name: "Venerable Blade", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `In Close Combat, the character gains Penetrating Damage (${TRAITS.penetratingDamage.description}). If fighting an opposing Individual, inflict 1 additional point of damage on a tie or win.` },
-            masterCraftedPistol: { name: "Master Crafted Pistol", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: `Gain Anti Personnel (${TRAITS.antiPersonnel.description}) within 9”.` },
-            warRelic: { name: "War Relic", keyword: INDIVIDUAL, statBonuses: { points: 4 }, description: `At the start of each Star Knight turn, the closest Imperial unit within 9” and sight gain Damage Mitigation (${TRAITS.damageMitigation.description}) until the start of the next Star Knight turn The Character does not have to be activated for this to take effect.` },
-            vowsOfVengeance: { name: "Vows of Vengeance", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: `The Individual gains Limited Intelligence (${TRAITS.limitedIntelligence.description}). Add +1 to Close Combat against Individuals.` },
-            assaultGrenadeLaunchers: { name: "Assault Grenade Launchers", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Armoured Vehicles only. Single use. Select an Infantry unit within 6” and roll 3D6. Inflict 1 damage per die showing a 4+.` }, //TODO: Handle requirement of vehicle being armoured
-            defenceSystem: { name: "Defence System", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Armoured Vehicles only. Each time the vehicle suffers damage roll 1D6. On a 5-6 the damage is negated and the Defence System is unavailable for the rest of the battle.` }, //TODO: Handle requirement of vehicle being armoured
-            assaultTransport: { name: "Assault Transport", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Armoured Vehicles only. Transport only. Units that disembark receive +1 to Close Combat rolls for the rest of the current and all of the following enemy turn.` }, //TODO: Handle requirement of vehicle being armoured
-            reconLink: { name: "Recon Link", keyword: VEHICLE, statBonuses: { points: 3 }, description: `For Light Vehicles only. All Star Knight units gain +1 to hit when firing at targets within 12” and sight of the vehicle with the Recon Link.` }, //TODO: Handle requirement of vehicle being light
-            optimisedSteering: { name: "Optimised Steering", keyword: VEHICLE, statBonuses: { points: 1 }, description: `For Light Vehicles only. The vehicle can turn one additional time per Activation.` } //TODO: Handle requirement of vehicle being light
-        },
-        units: {
-            tacticalSquad: { name: "Tactical Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures with 1 heavy weapon", specialRules: [] },
-            assaultSquad: { name: "Assault Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 2, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 1 }, cohesion: 9, points: 14, composition: "3 figures", specialRules: [] },
-            jumpSquad: { name: "Jump Squad", keyword: SQUAD, move: 8, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 3, antiTank: 1 }, cohesion: 9, points: 16, composition: "3 figures", specialRules: [TRAITS.jump] },
-            heavyWeaponSquadVersatile: { name: "Heavy Weapon Squad - Versatile", keyword: SQUAD, move: 4, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "3 figures with 2 heavy weapons", specialRules: [] },
-            heavyWeaponSquadRapidFire: { name: "Heavy Weapon Squad - Rapid Fire", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "3 figures with 2 heavy weapons", specialRules: [TRAITS.antiPersonnel, { name: "Split Fire", description: "May fire at two different targets. Each attack is conducted as +0 / +0 / +0 without Anti Personnel. Select both targets before rolling." }] },
-            reconSquad: { name: "Recon Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.infiltration, TRAITS.specialist, { name: "Recon Armour", description: "Does not benefit from Environmental Suit rule." }] },
-            reconSnipers: { name: "Recon Snipers", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.infiltration, TRAITS.specialist, TRAITS.sniping, { name: "Recon Armour", description: "Does not benefit from Environmental Suit rule." }] },
-            breachSquad: { name: "Breach Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 5, antiTank: 3 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
-            breachAssaultSquad: { name: "Breach Assault Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 6, antiTank: 4 }, cohesion: 9, points: 13, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
-            officer: { name: "Officer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership] },
-            reciter: { name: "Reciter", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Litanies", description: "Knight units within 6” add +1 to close combat rolls." }] },
-            bannerBearer: { name: "Banner Bearer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Banner", description: "Imperial units that Regroup within 6” regain 1 additional point of Cohesion." }] },
-            medicalSpecialist: { name: "Medical Specialist", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Healer", description: "Take a Carry Out Action. One Imperial squad within 3” regains 1 point of Cohesion." }] },
-            technicalSpecialist: { name: "Technical Specialist", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.repair] },
-            psionicKnight: { name: "Psionic Knight", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 21, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 3, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.starKnights] },
-            captain: { name: "Captain", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 10, points: 18, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership, TRAITS.unique] },
-            battleRobot: { name: "Battle Robot", keyword: VEHICLE, move: 6, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 2, antiTank: null }, armour: { front: 8, side: 7, rear: 7 }, points: 15, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured, TRAITS.robot] },
-            tacticalCombatArmourTactical: { name: "Tactical Combat Armour - Tactical", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 3, antiTank: 2 }, armour: { front: 9, side: 8, rear: 7 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
-            tacticalCombatArmourSupport: { name: "Tactical Combat Armour - Support", keyword: VEHICLE, move: 6, firepower: [{ type: ANTI_INFANTRY, firefight: 0, battle: 0, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 1, antiTank: 0 }, armour: { front: 9, side: 8, rear: 7 }, points: 21, composition: "1 vehicle", specialRules: [TRAITS.walker, TRAITS.armoured] },
-            landCrusherAssaultTank: { name: "Land Crusher Assault Tank", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 0, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 3 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (3)", description: TRAITS.transportCapacity.description }] },
-            assailantMediumTank: { name: "Assailant Medium Tank", keyword: VEHICLE, move: 10, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 1, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 1, long: 1, antiTank: 2 }], armour: { front: 10, side: 10, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] },
-            punisherAssaultGun: { name: "Punisher Assault Gun", keyword: VEHICLE, move: 8, firepower: [{ firefight: 2, battle: 2, long: 0, antiTank: 2 }], armour: { front: 10, side: 10, rear: 9 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive, TRAITS.siegeGun, TRAITS.forwardFiring] },
-            firestormMissileTank: { name: "Firestorm Missile Tank", keyword: VEHICLE, move: 10, firepower: [{ type: ANTI_INFANTRY, firefight: 1, battle: 1, long: 1, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 0, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: TRAITS.indirectFire, description: TRAITS.indirectFire.description + " (above 9” only)" }] },
-            chargerTroopCarrier: { name: "Charger Troop Carrier", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], armour: { front: 10, side: 8, rear: 8 }, points: 10, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (4)", description: TRAITS.transportCapacity.description }] },
-            stingerTroopCarrier: { name: "Stinger Troop Carrier", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], armour: { front: 10, side: 8, rear: 8 }, points: 15, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, { name: "Transport Capacity (3)", description: TRAITS.transportCapacity.description }] },
-            claymoreTankHunter: { name: "Claymore Tank Hunter", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 1 }], armour: { front: 10, side: 8, rear: 8 }, points: 18, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.forwardFiring] },
-            strikeSpeeder: { name: "Strike Speeder", keyword: VEHICLE, move: 10, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 4 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 7, points: 15, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover, TRAITS.forwardFiring] },
-            strikeSpeederMonsoonRockets: { name: "Strike Speeder - Monsoon Rockets", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 0 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 7, points: 15, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover, TRAITS.forwardFiring] }, //Handles monsoon rockets variant
-            lightSpeeder: { name: "Light Speeder", keyword: VEHICLE, move: 10, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 7, points: 10, composition: "1 vehicle", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover, TRAITS.forwardFiring] },
-            bikeSquad: { name: "Bike Squad", keyword: VEHICLE, move: 12, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 7, points: 14, composition: "2 figures", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.wheeled, TRAITS.forwardFiring] },
-            bikeSquadHover: { name: "Bike Squad - Hover", keyword: VEHICLE, move: 12, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 7, points: 16, composition: "2 figures", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.hover, TRAITS.forwardFiring] },
-            gunMotorcycl: { name: "Gun Motorcycle", keyword: VEHICLE, move: 8, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 2 }], assault: { modifier: 0, antiTank: null }, cohesion: 7, points: 15, composition: "1 figure", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.wheeled] },
-            scorpionHeavyWeaponsPlatform: { name: "MK1 Scorpion Heavy Weapons Platform", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: 1, battle: 2, long: 1, antiTank: 2 }], assault: { modifier: -1, antiTank: null }, cohesion: 9, points: 14, composition: "1 artillery weapon with crew", specialRules: [TRAITS.fieldArtillery, TRAITS.limitedIntelligence] },
-            fencerAntiTankPlatform: { name: "MK2 Fencer Anti-Tank platform", keyword: FIELD_ARTILLERY, move: 3, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 4 }], assault: { modifier: -1, antiTank: null }, cohesion: 9, points: 14, composition: "1 tracked artillery weapon with crew figures", specialRules: [TRAITS.mobileArtillery, TRAITS.limitedIntelligence] }
-        },
-        validator: [
-            {
-                description: "If all Vehicles selected are Unarmoured Vehicles and you do not select any Field Artillery, you may take as many Vehicles as you have Squads. Otherwise the total number of Vehicles and Field Artillery must be less than the number of Squads.",
-                validate: units => {
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-                    let armoredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.armour != null);
-                    let unarmouredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.cohesion != null);
-                    let fieldArtillery = units.filter(unit => unit.stats.keyword === FIELD_ARTILLERY);
-                    let vehiclesAndFieldArtillery = armoredVehicles.length + unarmouredVehicles.length + fieldArtillery.length;
-
-                    if (unarmouredVehicles.length > 0 || fieldArtillery.length > 0) {
-                        return vehiclesAndFieldArtillery < squads.length;
-                    }
-                    return armoredVehicles.length <= squads.length;
-                }
-            },
-            {
-                description: "You may select up to 1 Character for every Squad.",
-                validate: units => {
-                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return individuals <= squads;
-                }
-            }
-        ]
-    }
-    /*
-    Template for army lists.
-        template: {
-        name: "",
-        armySpecialRules: { ...ARMY_SPECIAL_RULES.armyName, {name:"", description:""} },
-        psionicPowers: { foo: PSIONIC_POWERS_LIST.foo },
-        upgrades: {
-            ...GENERIC_UPGRADES,
-            upgrade: { name: "foo", keyword: SQUAD, statBonuses: { points: 1 }, description: "foo" },
-        },
-        units: {
-            squad: { name: "foo", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: null }], assault: { modifier: 0, antiTank: null }, cohesion: 8, points: 10, composition: "5 figures", specialRules: [] },
-            psyker: { name: "bar", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.foo] },
-            tank: { name: "baz", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] }
-        },
-        validator: [
-            {
-                description: "The number of Individuals taken must be less than the number of Squads.",
-                validate: units => {
-                    let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
-                    let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-
-                    return individuals.length < squads.length;
-                }
-            }
-        ]
-    }
-    */
+    crawlerHorde: crawlerHorde,
+    hellServants: hellServants,
+    hellRenegades: hellRenegades,
+    imperialLegion: imperialLegion,
+    killBots: killBots,
+    spaceElves: spaceElves,
+    spaceOrcs: spaceOrcs,
+    starKnights: starKnights
 }
