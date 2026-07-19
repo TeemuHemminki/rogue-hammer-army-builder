@@ -23,7 +23,14 @@ export default class UpgradeCard extends HTMLElement {
             <style>
                 div{
                     border: 1px solid black;
-                    width: 150px;
+                    width: 200px;
+                    padding: 3px;
+                    margin: 3px;
+                }
+                
+                .assigned{
+                    color: red;
+                    font-weight: bold;
                 }
             </style>
             <div>
@@ -31,8 +38,8 @@ export default class UpgradeCard extends HTMLElement {
                 <p>Cost: ${this._upgrade.statBonuses.points}</p>
                 <p>${this._upgrade.description}</p>
                 ${this._upgrade.assignedUnit
-                    ? "<p>Currently assigned to " + this._upgrade.assignedUnit.name + "</p>"
-                    : ""
+                    ? '<p class="assigned">Currently assigned to ' + this._upgrade.assignedUnit.name + '</p>'
+                    : ''
                 }
             </div>
         `;
