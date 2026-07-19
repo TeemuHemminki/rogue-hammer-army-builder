@@ -1,6 +1,6 @@
 'use strict'
 
-import { VEHICLE } from '../scripts/constants.js';
+import { ANTI_INFANTRY, ANTI_TANK, VEHICLE } from '../scripts/constants.js';
 
 class UnitCard extends HTMLElement {
     constructor() {
@@ -245,6 +245,11 @@ class UnitCard extends HTMLElement {
             const firepowerContainer = this.shadow.querySelector('#firepower');
             const header = firepowerContainer.createCaption().textContent = "Firepower";
             const rowHeader = firepowerContainer.insertRow();
+            if(this._unit.stats.firepower[0].type){
+                const typeElement = document.createElement('th');
+                typeElement.textContent = "Typ";
+                rowHeader.append(typeElement);
+            }
             const fireFightElement = document.createElement('th');
             fireFightElement.textContent = "9”";
             rowHeader.append(fireFightElement);
@@ -259,6 +264,9 @@ class UnitCard extends HTMLElement {
             rowHeader.append(antiTankElement);
             for (let i = 0; i < this._unit.stats.firepower.length; i++) {
                 let rowFireMode = firepowerContainer.insertRow();
+                if(this._unit.stats.firepower[i].type){
+                    let typeCell = rowFireMode.insertCell().textContent = this._unit.stats.firepower[i].type;
+                }
                 let firefightCell = rowFireMode.insertCell();
                 firefightCell.textContent = this.getStat({ stat: "firepower", substat: "firefight", index: i, isModifier: true });
                 let battleCell = rowFireMode.insertCell();

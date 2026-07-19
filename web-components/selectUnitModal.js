@@ -100,7 +100,7 @@ export default class SelectUnitModal extends HTMLElement {
             let unitElement = document.createElement('div');
             unitElement.classList.add('unit');
             unitElement._unit = unit;
-            unitElement.innerText += unit[1].keyword.icon + " " + unit[1].name;
+            unitElement.innerText += `${unit[1].keyword.icon} ${unit[1].name} - ${unit[1].points}pts`;
             container.append(unitElement);
         }
     }
