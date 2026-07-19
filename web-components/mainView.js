@@ -15,6 +15,7 @@ export default class MainView extends HTMLElement {
         this.addArmy = this.addArmy.bind(this);
         this.deleteArmy = this.deleteArmy.bind(this);
         this.closeArmy = this.closeArmy.bind(this);
+        this.armyNameChanged = this.armyNameChanged.bind(this);
     }
 
     addArmy(event){
@@ -32,6 +33,10 @@ export default class MainView extends HTMLElement {
         this.render();
     }
 
+    armyNameChanged(event){
+        this.render();
+    }
+
     set main(main){
         this._main = main;
         this.render();
@@ -42,6 +47,7 @@ export default class MainView extends HTMLElement {
         this.shadow.addEventListener('addArmy', this.addArmy);
         this.shadow.addEventListener('deleteArmy', this.deleteArmy);
         this.shadow.addEventListener('closeArmy', this.closeArmy);
+        this.shadow.addEventListener('army-name-changed', this.armyNameChanged);
     }
 
     disconnectedCallback() {
@@ -49,6 +55,7 @@ export default class MainView extends HTMLElement {
         this.shadow.removeEventListener('addArmy', this.addArmy);
         this.shadow.removeEventListener('deleteArmy', this.deleteArmy);
         this.shadow.removeEventListener('closeArmy', this.closeArmy);
+        this.shadow.removeEventListener('army-name-changed', this.armyNameChanged);
     }
 
     onClick(event){

@@ -351,7 +351,7 @@ class UnitCard extends HTMLElement {
     //We use single onClick to handle click events, this helps preventing duplicate eventListeners.
     onClick(event) {
         if (event.target.matches('#editNameButton')) {
-            this._unit.name = prompt("", this._unit.name ? this._unit.name : this._unit.stats.name);
+            this._unit.name = prompt("", this._unit.nickName ? this._unit.nickName : this._unit.stats.name);
         }
 
         if (event.target.matches('#experienceButton')) {

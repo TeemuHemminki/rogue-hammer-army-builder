@@ -33,6 +33,15 @@ export default class ArmyCard extends HTMLElement {
         if (event.target.matches('#editNameButton')) {
             this._army.name = prompt("", this._army.name ? this._army.name : this._army.armyList.name);
             this.render();
+            this.dispatchEvent(
+                new CustomEvent('army-name-changed', {
+                    detail: {
+                        army: this._army
+                    },
+                    bubbles: true,
+                    composed: true
+                })
+            )
         }
         if (event.target.matches('#addUnitButton')){
             this.shadow.querySelector('#selectUnitModal').open(this._army);

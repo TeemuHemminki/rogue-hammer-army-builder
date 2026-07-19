@@ -63,6 +63,10 @@ export default class Unit extends EventTarget{
         return this._stats.name;
     }
 
+    get nickName(){
+        return this._nickname;
+    }
+
     set upgrade(upgrade){
         if(this._upgrade != null){
             this._upgrade.unassign(); //To remove existing upgrade
