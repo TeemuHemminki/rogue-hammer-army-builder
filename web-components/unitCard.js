@@ -233,7 +233,7 @@ class UnitCard extends HTMLElement {
                 ${this._unit.campaignRewards.length > 0 ? '<table id="campaignRewards"><caption>Campaign rewards</caption></table>' : ''}
                 <table id="upgradeContainer">
                 <caption>Upgrade</caption>
-                ${this._unit.upgrade ? `<tr><td><strong>${this._unit.upgrade.name}</strong>: ${this._unit.upgrade.description}</td></tr>` : ''}
+                ${this._unit.upgrade ? `<tr><td><strong>${this._unit.upgrade.name}</strong>: ${this._unit.upgrade.description} <button id="removeUpgradeButton">🗑️</button></td></tr>` : ''}
                 <tr><td><button id="upgradeButton">Select upgrade</button></td></tr>
                 </table>
                 <p>Composition: <i>${this._unit.stats.composition}</i></p>
@@ -368,6 +368,12 @@ class UnitCard extends HTMLElement {
                     composed: true
                 })
             )
+        }
+
+        if (event.target.matches('#removeUpgradeButton')){
+            if(confirm("Remove upgrade from this unit?")){
+                this._unit.unassignUpgrade();
+            }
         }
 
         if (event.target.matches('#deleteUnitButton')) {
