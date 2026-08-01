@@ -257,7 +257,7 @@ export default class Unit extends EventTarget{
             let facing = "";
             let statBonuses;
             while(isNaN(facingNumber) || facingNumber < 0 || facingNumber > 3){
-                facingNumber = prompt(damage.name + '! Which facing is affected? (0: front, 1: side, 2: rear)');
+                facingNumber = prompt("Rolled " + damage.name + '! Which facing is affected? (0: front, 1: side, 2: rear)');
             }
             switch(facingNumber){
                 case '0':
@@ -275,9 +275,16 @@ export default class Unit extends EventTarget{
                 default:
                     break;
             }
-            damage = {name: damage.name, description: damage.description + facing, canBeAppliedMultipleTimes: damage.canBeAppliedMultipleTimes, statBonuses: statBonuses};
+            damage = {order: damage.order, name: damage.name, description: damage.description + facing, canBeAppliedMultipleTimes: damage.canBeAppliedMultipleTimes, statBonuses: statBonuses};
+        } else {
+            if(damage.stopsMovement && this.vehicleDamage.some(damage => damage.stopsMovement)){
+                alert("Rolled " + damage.name + "! Because vehicle was already Immobilised, it is Knocked Out instead!");
+            } else {
+                alert("Rolled " + damage.name + "! " + damage.description);
+            }
         }
         this._vehicleDamage.push(damage);
+        this._vehicleDamage.sort((a, b) => a.order - b.order);
         this.dispatchEvent(new Event("change"));
     }
     
