@@ -18,6 +18,34 @@ export const COMMAND = { icon: '📡', order: 3 };
 export const VEHICLE = { icon: '🛡️', order: 4 };
 export const FIELD_ARTILLERY = { icon: '💥', order: 5 };
 
+//Vehicle damage tables
+const VEHICLE_DAMAGE = {
+    slowDown: { name: "Slow Down", canBeAppliedMultipleTimes: true, description: "Speed is halved (rounding down)"},
+    firepowerReduced: { name: "Firepower Reduced", canBeAppliedMultipleTimes: true, description: "All shooting is -1 to hit"},
+    armourBreech: { name: "Armour Breech", canBeAppliedMultipleTimes: true, description: "Armour on this facing reduced by 1"},
+    immobilised: { name: "Immobilised", description: "The vehicle is unable to move or turn. If the vehicle is Immobilised again, it is Knocked Out."},
+    burning: { name: "Burning",  canBeAppliedMultipleTimes: true, description: "The vehicle is immobilised. At the start of each game turn roll 1D6. On a 6 the vehicle suffers Catstrophic damage."},
+    knockedOut: { name: "Knocked Out", description: "The vehicle ceases to function. Roll 1D6. On a 5-6, the vehicle suffers Catastrophic Damage."}
+}
+
+export const MINOR_DAMAGE_TABLE = [
+    VEHICLE_DAMAGE.slowDown,
+    VEHICLE_DAMAGE.slowDown,
+    VEHICLE_DAMAGE.firepowerReduced,
+    VEHICLE_DAMAGE.firepowerReduced,
+    VEHICLE_DAMAGE.armourBreech,
+    VEHICLE_DAMAGE.immobilised
+]
+
+export const MAJOR_DAMAGE_TABLE = [
+    VEHICLE_DAMAGE.immobilised,
+    VEHICLE_DAMAGE.immobilised,
+    VEHICLE_DAMAGE.immobilised,
+    VEHICLE_DAMAGE.burning,
+    VEHICLE_DAMAGE.knockedOut,
+    VEHICLE_DAMAGE.knockedOut
+]
+
 //Campaign stuff
 export const RANKS = {
     0: { rank: 0, experience: 0, totalUpgrades: 0, totalCohesionBonus: 0 },
@@ -342,7 +370,7 @@ const imperialLegion = {
         officer: { name: "Officer", keyword: COMMAND, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 8, points: 10, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership] },
         scoutWalker: { name: "Scout Walker", keyword: VEHICLE, move: 8, firepower: [{ firefight: 2, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 0, antiTank: null }, armour: { front: 8, side: 7, rear: 7 }, points: 15, composition: "1 walker", specialRules: [TRAITS.walker, TRAITS.armoured, { name: "Poor Protection", description: "Assault attacks against the scout walker get +1 to anti-tank" }] },
         frontlineTank: { name: "Frontline Tank", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive] },
-        frontlineTankVanquish: { name: "Frontline Tank - Vangquish", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 2, long: 2, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] }, //TODO: Handles vanquish upgrade
+        frontlineTankVanquish: { name: "Frontline Tank - Vangquish", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 2, long: 2, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] }, //NOTE: Handles vanquish upgrade
         frontlineTankAutocannon: { name: "Frontline Tank - Autocannon", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 0 }], armour: { front: 11, side: 10, rear: 8 }, points: 20, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] },
         siegeTank: { name: "Siege Tank", keyword: VEHICLE, move: 5, firepower: [{ type: ANTI_INFANTRY, firefight: 3, battle: 3, long: null, antiTank: null }, { type: ANTI_TANK, firefight: 2, battle: 0, long: null, antiTank: 3 }], armour: { front: 12, side: 10, rear: 8 }, points: 28, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive, TRAITS.siegeGun] },
         assaultArtillery: { name: "Assault Artillery", keyword: VEHICLE, move: 6, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 3, antiTank: null }, { type: ANTI_TANK, firefight: 0, battle: 0, long: 0, antiTank: 1 }], armour: { front: 10, side: 8, rear: 7 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured, TRAITS.highExplosive, TRAITS.forwardFiring] },

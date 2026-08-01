@@ -1,6 +1,6 @@
 'use strict'
 
-import { ANTI_INFANTRY, ANTI_TANK, VEHICLE } from '../scripts/constants.js';
+import { ANTI_INFANTRY, ANTI_TANK, VEHICLE, TRAITS } from '../scripts/constants.js';
 
 class UnitCard extends HTMLElement {
     constructor() {
@@ -240,7 +240,7 @@ class UnitCard extends HTMLElement {
                 <table id="upgradeContainer">
                 <caption>Upgrade</caption>
                 ${this._unit.upgrade ? `<tr><td><strong>${this._unit.upgrade.name}</strong>: ${this._unit.upgrade.description} <button id="removeUpgradeButton">🗑️</button></td></tr>` : ''}
-                <tr><td><button id="upgradeButton">Select upgrade</button></td></tr>
+                ${!this._unit.stats.specialRules.includes(TRAITS.specialist) ? '<tr><td><button id="upgradeButton">Select upgrade</button></td></tr>' : ''}
                 </table>
                 <p>Composition: <i>${this._unit.stats.composition}</i></p>
 
