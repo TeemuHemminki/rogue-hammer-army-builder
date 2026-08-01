@@ -33,11 +33,12 @@ class UnitCard extends HTMLElement {
     }
 
     //Calculates stat, potential bonus to it and returns it in needed form
-    getStat({ stat, substat, index, isModifier, isMovement, isCohesion }) {
+    getStat({ stat, substat, index, isModifier, isMovement, isCohesion, isArmour }) {
         let base;
         let bonus;
-        let experienceUpgrade;
-        let campaignRewardBonus;
+        let experienceUpgrade = 0;
+        let campaignRewardBonus = 0;
+        let vehicleDamagePenalty = 0;
 
         if (Array.isArray(this._unit.stats[stat])) {
             base = !substat ? this._unit.stats[stat]?.[index] ?? null : this._unit.stats[stat]?.[index]?.[substat] ?? null;
@@ -46,8 +47,6 @@ class UnitCard extends HTMLElement {
         }
         bonus = !substat ? this._unit.upgrade?.statBonuses[stat] ?? null : this._unit.upgrade?.statBonuses?.[stat]?.[substat] ?? null;
 
-        experienceUpgrade = 0;
-        campaignRewardBonus = 0;
         for (let eu of this._unit.experienceUpgrades) {
             experienceUpgrade += !substat ? eu.statBonuses[stat] ?? null : eu.statBonuses?.[stat]?.[substat] ?? null;
         }
@@ -59,16 +58,38 @@ class UnitCard extends HTMLElement {
             campaignRewardBonus += !substat ? reward.statBonuses?.[stat] ?? null : reward.statbonuses?.[stat]?.[substat] ?? null;
         }
 
+        if(this._unit.vehicleDamage.length > 0){
+            for(let vd of this._unit.vehicleDamage){
+                if(vd.statBonuses?.[stat]){
+                    vehicleDamagePenalty += !substat ? vd.statBonuses[stat] ?? null : vd.statBonuses?.[stat]?.[substat] ?? null;
+                }
+           }
+        }
+
         if (isMovement) {
-            return bonus || experienceUpgrade || campaignRewardBonus ? (base + bonus + experienceUpgrade + campaignRewardBonus) + '" (' + base + '")' : base + '"';
+            if (this._unit.vehicleDamage.length > 0){
+                let movement = (base + bonus + experienceUpgrade + campaignRewardBonus);
+                if(this._unit.vehicleDamage.some(damage => damage.stopsMovement)){
+                    return 0 + '" <span class="originalStat">(' + base + '")</span>';
+                }
+                let movementHalvings = this._unit.vehicleDamage.filter(damage => damage.halvesMovement).length;
+                for(let i = 0; i < movementHalvings; i++){
+                    movement = Math.floor(movement / 2);
+                }
+                return movement != base ? movement + '" <span class="originalStat">(' + base + '")</span>' : base + '"';
+            } else {
+                return bonus || experienceUpgrade || campaignRewardBonus ? (base + bonus + experienceUpgrade + campaignRewardBonus) + '" <span class="originalStat">(' + base + '")' : base + '"';
+            }
         } else if (isModifier) {
             let baseValue = base != null ? base >= 0 ? '+' + base : base : '-';
-            let modifiedValue = bonus || experienceUpgrade || campaignRewardBonus ? base + bonus + experienceUpgrade + campaignRewardBonus >= 0 ? '+' + (base + bonus + experienceUpgrade + campaignRewardBonus) : base + bonus + experienceUpgrade + campaignRewardBonus : null;
-            return modifiedValue ? modifiedValue + ' (' + baseValue + ')' : baseValue;
+            let modifiedValue = bonus || experienceUpgrade || campaignRewardBonus || vehicleDamagePenalty ? base + bonus + experienceUpgrade + campaignRewardBonus + vehicleDamagePenalty >= 0 ? '+' + (base + bonus + experienceUpgrade + campaignRewardBonus + vehicleDamagePenalty) : base + bonus + experienceUpgrade + campaignRewardBonus + vehicleDamagePenalty : null;
+            return modifiedValue ? modifiedValue + ' <span class="originalStat">(' + baseValue + ')</span>' : baseValue;
         } else if (isCohesion) {
-            return bonus || this._unit.rank.totalCohesionBonus > 0 || campaignRewardBonus ? (base + bonus + this._unit.rank.totalCohesionBonus + campaignRewardBonus) + " (" + base + ")" : base;
+            return bonus || this._unit.rank.totalCohesionBonus > 0 || campaignRewardBonus ? (base + bonus + this._unit.rank.totalCohesionBonus + campaignRewardBonus) + " <span class='originalStat'>(" + base + ")</span>" : base;
+        } else if (isArmour) {
+            return vehicleDamagePenalty ? (base + vehicleDamagePenalty) + " <span class='originalStat'>(" + base + ")</span>" : base;
         }
-        return bonus ? (base + bonus) + " (" + base + ")" : base;
+        return bonus ? (base + bonus) + " <span class='originalStat'>(" + base + ")</span>" : base;
     }
 
     render() {
@@ -110,6 +131,10 @@ class UnitCard extends HTMLElement {
                     border: none;
                     padding: 0;
                     vertical-align: top;
+                }
+                .originalStat{
+                    font-size: x-small;
+                    color: grey;
                 }
                 .specialRule{
                     text-align: left;
@@ -202,9 +227,9 @@ class UnitCard extends HTMLElement {
                                 <th>Re</th>
                             </tr>
                             <tr>
-                                <td>${this.getStat({ stat: "armour", substat: "front" })}</td>
-                                <td>${this.getStat({ stat: "armour", substat: "side" })}</td>
-                                <td>${this.getStat({ stat: "armour", substat: "rear" })}</td>
+                                <td>${this.getStat({ stat: "armour", substat: "front", isArmour: true })}</td>
+                                <td>${this.getStat({ stat: "armour", substat: "side", isArmour: true })}</td>
+                                <td>${this.getStat({ stat: "armour", substat: "rear", isArmour: true })}</td>
                             </tr>
                         </tbody>
                     </table></td>`
@@ -232,7 +257,8 @@ class UnitCard extends HTMLElement {
                 ${this._unit.stats.specialRules.length > 0
                 ? '<table id="specialRules"><caption>Special Rules</caption></table>'
                 : ''
-            }
+                }
+                ${this._unit.stats.armour ? '<table id="vehicleDamage"><Caption>Vehicle Damage</caption><tr><td><button id="rollMinorVehicleDamage">Roll Minor Damage</button><button id="rollMajorVehicleDamage">Roll Major Damage</button><button id="clearVehicleDamage">Clear Damage</button></td></tr></table>' : ''}
                 ${this._unit.stats.psionicLevel != null
                 ? '<table><caption>Psionic Level ' + this._unit.stats.psionicLevel + '</caption><tr><td><select id="selectPsionicPowerList"></select></td></tr></table>' : ''}
                 ${this._unit.experienceUpgrades.length > 0 ? '<table id="experienceUpgrades"><caption>Experience upgrades</caption></table>' : ''}
@@ -274,13 +300,13 @@ class UnitCard extends HTMLElement {
                     let typeCell = rowFireMode.insertCell().textContent = this._unit.stats.firepower[i].type;
                 }
                 let firefightCell = rowFireMode.insertCell();
-                firefightCell.textContent = this.getStat({ stat: "firepower", substat: "firefight", index: i, isModifier: true });
+                firefightCell.innerHTML = this.getStat({ stat: "firepower", substat: "firefight", index: i, isModifier: true });
                 let battleCell = rowFireMode.insertCell();
-                battleCell.textContent = this.getStat({ stat: "firepower", substat: "battle", index: i, isModifier: true });
+                battleCell.innerHTML = this.getStat({ stat: "firepower", substat: "battle", index: i, isModifier: true });
                 let longCell = rowFireMode.insertCell();
-                longCell.textContent = this.getStat({ stat: "firepower", substat: "long", index: i, isModifier: true });
+                longCell.innerHTML = this.getStat({ stat: "firepower", substat: "long", index: i, isModifier: true });
                 let antiTankCell = rowFireMode.insertCell();
-                antiTankCell.textContent = this.getStat({ stat: "firepower", substat: "antiTank", index: i, isModifier: true });
+                antiTankCell.innerHTML = this.getStat({ stat: "firepower", substat: "antiTank", index: i, isModifier: true });
             }
         }
 
@@ -293,6 +319,23 @@ class UnitCard extends HTMLElement {
                 strong.innerText = specialRule.name;
                 cell.append(strong);
                 cell.innerHTML += ": " + specialRule.description;
+            }
+        }
+
+        if (this._unit.stats.armour && this._unit.vehicleDamage.length > 0) {
+            const vehicleDamageContainer = this.shadow.querySelector('#vehicleDamage');
+            for (const vehicleDamage of this._unit.vehicleDamage) {
+                let cell = vehicleDamageContainer.insertRow().insertCell();
+                cell.classList.add("specialRule");
+                let strong = document.createElement('strong');
+                strong.innerText = vehicleDamage.name;
+                cell.append(strong);
+                cell.innerHTML += ": " + vehicleDamage.description;
+                let deleteVehicleDamageButton = document.createElement('button');
+                deleteVehicleDamageButton.innerText = "🗑️";
+                deleteVehicleDamageButton.classList.add("deleteVehicleDamage");
+                deleteVehicleDamageButton.vehicleDamage = vehicleDamage;
+                cell.append(deleteVehicleDamageButton);
             }
         }
 
@@ -414,6 +457,26 @@ class UnitCard extends HTMLElement {
         if (event.target.matches('.deleteCampaignReward')) {
             if (confirm("Delete this campaign reward?")) {
                 this._unit.removeCampaignReward(event.target.reward);
+            }
+        }
+
+        if (event.target.matches('#rollMinorVehicleDamage')) {
+            this._unit.rollMinorVehicleDamage();
+        }
+
+        if (event.target.matches('#rollMajorVehicleDamage')) {
+            this._unit.rollMajorVehicleDamage();
+        }
+
+        if (event.target.matches('#clearVehicleDamage')) {
+            if (confirm("Clear all vehicle damage?")) {
+                this._unit.clearVehicleDamage();
+            }
+        }
+
+        if (event.target.matches('.deleteVehicleDamage')) {
+            if (confirm(`Remove ${event.target.vehicleDamage.name}?`)) {
+                this._unit.removeSingleVehicleDamage(event.target.vehicleDamage);
             }
         }
     }

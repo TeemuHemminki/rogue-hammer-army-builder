@@ -20,15 +20,15 @@ export const FIELD_ARTILLERY = { icon: '💥', order: 5 };
 
 //Vehicle damage tables
 const VEHICLE_DAMAGE = {
-    slowDown: { name: "Slow Down", canBeAppliedMultipleTimes: true, description: "Speed is halved (rounding down)"},
-    firepowerReduced: { name: "Firepower Reduced", canBeAppliedMultipleTimes: true, description: "All shooting is -1 to hit"},
-    armourBreech: { name: "Armour Breech", canBeAppliedMultipleTimes: true, description: "Armour on this facing reduced by 1"},
-    immobilised: { name: "Immobilised", description: "The vehicle is unable to move or turn. If the vehicle is Immobilised again, it is Knocked Out."},
-    burning: { name: "Burning",  canBeAppliedMultipleTimes: true, description: "The vehicle is immobilised. At the start of each game turn roll 1D6. On a 6 the vehicle suffers Catstrophic damage."},
-    knockedOut: { name: "Knocked Out", description: "The vehicle ceases to function. Roll 1D6. On a 5-6, the vehicle suffers Catastrophic Damage."}
+    slowDown: { name: "Slow Down", canBeAppliedMultipleTimes: true, description: "Speed is halved (rounding down)", halvesMovement: true},
+    firepowerReduced: { name: "Firepower Reduced", statBonuses: { firepower: {firefight: -1, battle: -1, long: -1}}, canBeAppliedMultipleTimes: true, description: "All shooting is -1 to hit"},
+    armourBreech: { name: "Armour Breech", canBeAppliedMultipleTimes: true, description: "Armour is reduced by 1 on ", affectsFacing: true},
+    immobilised: { name: "Immobilised", description: "The vehicle is unable to move or turn. If the vehicle is Immobilised again, it is Knocked Out.", stopsMovement: true},
+    burning: { name: "🔥 Burning",  canBeAppliedMultipleTimes: true, description: "The vehicle is immobilised. At the start of each game turn roll 1D6. On a 6 the vehicle suffers Catastrophic damage.", stopsMovement: true},
+    knockedOut: { name: "💥 Knocked Out", description: "The vehicle ceases to function. Roll 1D6. On a 5-6, the vehicle suffers Catastrophic Damage."}
 }
 
-export const MINOR_DAMAGE_TABLE = [
+export const MINOR_VEHICLE_DAMAGE_TABLE = [
     VEHICLE_DAMAGE.slowDown,
     VEHICLE_DAMAGE.slowDown,
     VEHICLE_DAMAGE.firepowerReduced,
@@ -37,7 +37,7 @@ export const MINOR_DAMAGE_TABLE = [
     VEHICLE_DAMAGE.immobilised
 ]
 
-export const MAJOR_DAMAGE_TABLE = [
+export const MAJOR_VEHICLE_DAMAGE_TABLE = [
     VEHICLE_DAMAGE.immobilised,
     VEHICLE_DAMAGE.immobilised,
     VEHICLE_DAMAGE.immobilised,

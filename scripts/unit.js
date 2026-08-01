@@ -1,9 +1,9 @@
 'use strict'
 
-import {RANKS as ranks, RANK_ROLLS as rankRolls, CAMPAIGN_REWARDS } from './constants.js';
+import {RANKS as ranks, RANK_ROLLS as rankRolls, CAMPAIGN_REWARDS, MINOR_VEHICLE_DAMAGE_TABLE, MAJOR_VEHICLE_DAMAGE_TABLE } from './constants.js';
 
 export default class Unit extends EventTarget{
-    constructor({identifier, stats, nickname, upgrade, campaignUnit, inactive, skipNextBattle, experience, rank, experienceUpgrades, campaignRewards, psionicPowerListIndex}){
+    constructor({identifier, stats, nickname, upgrade, campaignUnit, inactive, skipNextBattle, experience, rank, experienceUpgrades, campaignRewards, psionicPowerListIndex, vehicleDamage}){
         super();
         this._identifier = identifier; 
         this._stats = stats;
@@ -17,6 +17,7 @@ export default class Unit extends EventTarget{
         this._experienceUpgrades = experienceUpgrades || [];
         this._campaignRewards = campaignRewards || [];
         this._psionicPowerListIndex = psionicPowerListIndex || null;
+        this._vehicleDamage = vehicleDamage || [];
     }
 
     save(){
@@ -30,7 +31,8 @@ export default class Unit extends EventTarget{
             experience: this._experience,
             experienceUpgrades: this._experienceUpgrades,
             campaignRewards: this._campaignRewards,
-            psionicPowerListIndex: this._psionicPowerListIndex
+            psionicPowerListIndex: this._psionicPowerListIndex,
+            vehicleDamage: this._vehicleDamage
         };
     }
 
@@ -45,6 +47,7 @@ export default class Unit extends EventTarget{
         this._experienceUpgrades = unitSave.experienceUpgrades;
         this._campaignRewards = unitSave.campaignRewards;
         this._psionicPowerListIndex = unitSave.psionicPowerListIndex;
+        this._vehicleDamage = unitSave.vehicleDamage || [];
     }
 
     get identifier(){
@@ -243,6 +246,57 @@ export default class Unit extends EventTarget{
         this.dispatchEvent(new Event("change"));
     }
 
+    get vehicleDamage(){
+        return this._vehicleDamage;
+    }
 
+    rollVehicleDamage(damageTable){
+        let damage = damageTable[Math.floor(Math.random()*damageTable.length)];
+        if(damage.affectsFacing){
+            let facingNumber = -1;
+            let facing = "";
+            let statBonuses;
+            while(isNaN(facingNumber) || facingNumber < 0 || facingNumber > 3){
+                facingNumber = prompt(damage.name + '! Which facing is affected? (0: front, 1: side, 2: rear)');
+            }
+            switch(facingNumber){
+                case '0':
+                    facing = 'front';
+                    statBonuses = { armour: {front: -1}};
+                    break; 
+                case '1':
+                    facing = 'side';
+                    statBonuses = { armour: {side: -1}};
+                    break;
+                case '2':
+                    facing = 'rear';
+                    statBonuses = { armour: {rear: -1}};
+                    break;
+                default:
+                    break;
+            }
+            damage = {name: damage.name, description: damage.description + facing, canBeAppliedMultipleTimes: damage.canBeAppliedMultipleTimes, statBonuses: statBonuses};
+        }
+        this._vehicleDamage.push(damage);
+        this.dispatchEvent(new Event("change"));
+    }
+    
+    rollMinorVehicleDamage(){
+        this.rollVehicleDamage(MINOR_VEHICLE_DAMAGE_TABLE);
+    }
+
+    rollMajorVehicleDamage(){
+        this.rollVehicleDamage(MAJOR_VEHICLE_DAMAGE_TABLE);
+    }
+
+    clearVehicleDamage(){
+        this._vehicleDamage = [];
+        this.dispatchEvent(new Event("change"));
+    }
+
+    removeSingleVehicleDamage(damage){
+        this._vehicleDamage.splice(this._vehicleDamage.indexOf(damage), 1);
+        this.dispatchEvent(new Event("change"));
+    }
 }
 
