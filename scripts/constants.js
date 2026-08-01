@@ -103,7 +103,7 @@ export const TRAITS = {
 export const GENERIC_INDIVIDUAL_UPGRADES = {
     combatDrugs: { name: "Combat Drugs", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Usable once. Regain 2 Cohesion but each future activation roll 1D6. On a 1 lose 2 Cohesion." },
     cybernetics: { name: "Cybernetics", keyword: INDIVIDUAL, statBonuses: { cohesion: 1, points: 3 }, description: "+1 Cohesion." },
-    forceScreen: { name: "Force Screen", keyword: INDIVIDUAL, statBonuses: { points: 4 }, description: "May be activated any time a ranged attack inflicts damage on the Individual. If activated roll 1D6. If the roll equals or exceeds the damage dealt, the attack is negated. A roll of a 1 causes the screen to burn out and it is not usable for the rest of the game." },
+    forceScreen: { name: "Power Screen", keyword: INDIVIDUAL, statBonuses: { points: 4 }, description: "May be activated any time a ranged attack inflicts damage on the Individual. If activated roll 1D6. If the roll equals or exceeds the damage dealt, the attack is negated. A roll of a 1 causes the screen to burn out and it is not usable for the rest of the game." },
     jumpJets: { name: "Jump jets", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "A backpack unit allowing the wearer to leap across the battlefield. The Individual moves using the Jump rules: " + TRAITS.jump.description },
     minorPsionics: { name: "Minor Psionics", keyword: INDIVIDUAL, statBonuses: { points: 5 }, description: "The Individual gains Psionic (1). Not available to Coalition and Kill Bot figures. Use the General Psionic Abilities even in armies where this list is not used normally. Psionic: " + TRAITS.psionic.description }, //TODO: also add generic psionics list here?
     psionicScreen: { name: "Psionic Screen", keyword: INDIVIDUAL, statBonuses: { points: 4 }, description: "If directly targeted by a hostile psionic roll 1D6: On a 5+ the power has no effect." },
@@ -154,7 +154,8 @@ const ARMY_SPECIAL_RULES = {
         imperials: { name: "Imperials", description: "All units from this army list are considered Imperial units." }
     },
     imperialLegion: {
-        holdTheGround: { name: "Hold the ground", description: "At the end of your turn, select one Legion unit that is in a building or fortification or which is holding a Scenario Objective. The selected unit recovers 1 lost point of Cohesion" }
+        holdTheGround: { name: "Hold the ground", description: "At the end of your turn, select one Legion unit that is in a building or fortification, on high ground or within 3” of a Scenario Objective. The selected unit recovers 1 lost point of Cohesion" },
+        platoonOrders: { name: "Platoon Orders - Army Special Order", description: "A Platoon order can affect up to three units that are all Infantry, all Field Artillery or all Vehicles. They must be within 6” of each other forming a chain or blob. The Platoon can either all take 1 Move Action (remaining within 6” of each other) OR One unit can fire. Each unit in the Platoon that could itself inflict damage on the target by firing adds +1 to the hit roll."}
     },
     killBots: {
         selfRepair: { name: "Self Repair", description: "At the end of your player Phase, select any one Kill Bot squad and restore up to 2 points of lost Cohesion. Kill Bots cannot regain Cohesion in any other way, including by taking the Regroup Action." },
