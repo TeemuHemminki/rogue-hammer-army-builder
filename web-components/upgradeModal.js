@@ -51,7 +51,9 @@ export default class UpgradeModal extends HTMLElement {
                 }
                 
                 #modal{
-                    width: 80%;
+                    width: 90%;
+                    height: 90%;
+                    overflow: auto;
                     background: white;
                 }
 
