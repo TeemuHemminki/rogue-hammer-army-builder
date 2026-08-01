@@ -96,7 +96,7 @@ export const TRAITS = {
     tracked: { name: "Tracked", description: "The vehicle follows the terrain rules for Tracked vehicles." },
     wheeled: { name: "Wheeled", description: "The vehicle follows the terrain rules for Wheeled vehicles." },
     transportCapacity: { name: "Transport Capacity (x)", description: "The unit is a transport. The number in parenthesis is the number of unit points that can be loaded." }, //TODO: handling transport capacity parenthesis value in army building
-    unique: { name: "Unique", description: "You can include only one of each Unique unit in an army." }, //TODO: Handling unique in army building
+    unique: { name: "Unique", description: "You can include only one of each Unique unit in an army. You cannot include more than two Unique units in total." },
     walker: { name: "Walker", description: "The vehicle follows the terrain rules for Walkers." }
 }
 
@@ -269,6 +269,34 @@ const PSIONIC_POWERS_LIST = {
     }
 }
 
+//TODO: Currently validators calculate number of units multiple times. I believe this should be optimised so that each unit type is
+// calculated only once and then validators just refer to that calculation when checking if things are okay. That would also make it
+// possible to display how many of each unit type player currently has selected.
+const DEFAULT_VALIDATORS = [
+    {
+        description: "Army cannot have same Unique unit twice.",
+        validate: units => {
+            let uniqueUnits = [];
+            for (let unit of units) {
+                if (uniqueUnits.includes(unit.stats)) {
+                    return false;
+                }
+                if (unit.stats.specialRules.includes(TRAITS.unique)) {
+                    uniqueUnits.push(unit.stats);
+                }
+            }
+            return true;
+        }
+    },
+    {
+        description: "Army cannot have more than two units with Unique trait.",
+        validate: units => {
+            let uniqueUnits = units.filter(unit => (unit.stats.specialRules.includes(TRAITS.unique)));
+            return uniqueUnits.length <= 2;
+        }
+    },
+]
+
 const imperialLegion = {
     name: "Imperial Legion (Grimdark)",
     armySpecialRules: { ...ARMY_SPECIAL_RULES.imperialLegion, imperials: ARMY_SPECIAL_RULES.imperials.imperials },
@@ -330,12 +358,13 @@ const imperialLegion = {
         fencerGunCarrier: { name: "MK1 Fencer Gun Carrier", keyword: FIELD_ARTILLERY, move: 3, firepower: [{ firefight: 2, battle: 2, long: 0, antiTank: 0 }], assault: { modifier: -1, antiTank: null }, cohesion: 8, points: 14, composition: "1 tracked artillery weapon with crew figures", specialRules: [TRAITS.mobileArtillery] }
     },
     validator: [
+        ...DEFAULT_VALIDATORS,
         {
             description: "Each Squad allows you to select up to 1 Armoured Vehicle.",
             validate: units => {
                 let vehicles = units.filter(unit => (unit.stats.keyword === VEHICLE && unit.stats.armour != null));
                 let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-                return vehicles <= squads;
+                return vehicles.length <= squads.length;
             }
         },
         {
@@ -344,7 +373,7 @@ const imperialLegion = {
                 let vehiclesOrArtillery = units.filter(unit => (unit.stats.keyword === VEHICLE && unit.stats.cohesion != null) || (unit.stats.keyword === FIELD_ARTILLERY));
                 let squads = units.filter(unit => unit.stats.keyword === SQUAD);
 
-                return vehiclesOrArtillery <= squads;
+                return vehiclesOrArtillery.length <= squads.length;
             }
         },
         {
@@ -353,7 +382,7 @@ const imperialLegion = {
                 let commanders = units.filter(unit => unit.stats.keyword === COMMAND);
                 let squads = units.filter(unit => unit.stats.keyword === SQUAD);
 
-                return commanders <= squads;
+                return commanders.length <= squads.length;
             }
         },
         {
@@ -399,13 +428,14 @@ const crawlerHorde = {
         crawlerOverseerAcidCannon: { name: "Crawler Overseer - Acid Cannon", keyword: INDIVIDUAL, move: 7, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 2 }], assault: { modifier: 6, antiTank: 2 }, cohesion: 9, points: 25, composition: "1 big bug", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.terror, TRAITS.regenerate, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.crawlerHorde] }, //Handles acid cannon option
     },
     validator: [
+        ...DEFAULT_VALIDATORS,
         {
             description: "The number of Individuals taken must be less than the number of Broods.",
             validate: units => {
                 let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
                 let squads = units.filter(unit => unit.stats.keyword === SQUAD);
 
-                return individuals < squads;
+                return individuals.length < squads.length;
             }
         }
     ]
@@ -460,6 +490,7 @@ const hellServants = {
         bikeSquad: { name: "Bike Squad", keyword: VEHICLE, move: 12, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 7, points: 14, composition: "2 figures", specialRules: [TRAITS.lightVehicle, TRAITS.open, TRAITS.wheeled, TRAITS.forwardFiring] },
     },
     validator: [
+        ...DEFAULT_VALIDATORS,
         {
             description: "You may take up to 1 Individuals for every Squads.",
             validate: units => {
@@ -525,6 +556,7 @@ const hellRenegades = {
 
     },
     validator: [
+        ...DEFAULT_VALIDATORS,
         {
             description: "You may take up to 1 vehicle for every 2 squads.",
             validate: units => {
@@ -593,6 +625,7 @@ const killBots = {
         deathPyramid: { name: "Death Pyramid", keyword: VEHICLE, move: 6, firepower: [{ firefight: 2, battle: 2, long: null, antiTank: 1 }], armour: { front: 11, side: 11, rear: 11 }, points: 30, composition: "1 vehicle", specialRules: [TRAITS.hover, TRAITS.armoured, TRAITS.ponderous, { name: "Arc weapon", description: "May attack 2 different units each turn. Must always target the closest visible enemies." }] }
     },
     validator: [
+        ...DEFAULT_VALIDATORS,
         {
             description: "You may take up to 1 support unit and 1 individual for every 2 squads. Every 5 squads allow selecting 1 additional support unit OR individual.",
             validate: units => {
@@ -661,6 +694,7 @@ const spaceElves = {
         vibrationCannon: { name: "Vibration Cannon", keyword: FIELD_ARTILLERY, move: 4, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 1 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 16, composition: "1 artillery and 2 crew", specialRules: [TRAITS.mobileArtillery, TRAITS.siegeGun, { name: "Beam Weapon", description: "When firing draw a line that stops when blocked by terrain. All units under the line are attacked, including friendlies." }] }
     },
     validator: [
+        ...DEFAULT_VALIDATORS,
         {
             description: "You may take up to 1 vehicle per Squad.",
             validate: units => {
@@ -758,6 +792,7 @@ const spaceOrcs = {
         crashCannon: { name: "Crash Cannon", keyword: FIELD_ARTILLERY, move: 0, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: -1, antiTank: null }, cohesion: 7, points: 15, composition: "1 artillery weapon with 3 crew", specialRules: [{ name: "Scatter", description: "If the hit roll is a double, roll to hit against the closest unit (either side) within 6”, even if not in sight. This can occur multiple times." }, TRAITS.fieldArtillery, ARMY_SPECIAL_RULES.spaceOrcs.goblinMalfunction] }
     },
     validator: [
+        ...DEFAULT_VALIDATORS,
         {
             description: "You must take at least one Individual with Boss in their title.",
             validate: units => {
@@ -852,6 +887,7 @@ const starKnights = {
         fencerAntiTankPlatform: { name: "MK2 Fencer Anti-Tank platform", keyword: FIELD_ARTILLERY, move: 3, firepower: [{ firefight: 0, battle: 0, long: 0, antiTank: 4 }], assault: { modifier: -1, antiTank: null }, cohesion: 9, points: 14, composition: "1 tracked artillery weapon with crew figures", specialRules: [TRAITS.mobileArtillery, TRAITS.limitedIntelligence] }
     },
     validator: [
+        ...DEFAULT_VALIDATORS,
         {
             description: "If all Vehicles selected are Unarmoured Vehicles and you do not select any Field Artillery, you may take as many Vehicles as you have Squads. Otherwise the total number of Vehicles and Field Artillery must be less than the number of Squads.",
             validate: units => {
@@ -873,7 +909,7 @@ const starKnights = {
                 let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
                 let squads = units.filter(unit => unit.stats.keyword === SQUAD);
 
-                return individuals <= squads;
+                return individuals.length <= squads.length;
             }
         }
     ]
@@ -895,6 +931,7 @@ Template for army lists.
         tank: { name: "baz", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] }
     },
     validator: [
+        ...DEFAULT_VALIDATORS,
         {
             description: "The number of Individuals taken must be less than the number of Squads.",
             validate: units => {
