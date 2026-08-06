@@ -202,7 +202,8 @@ const ARMY_SPECIAL_RULES = {
         goblinMalfunction: { name: "Goblin Malfunction", description: "Orc Field artillery rolling a double 1 to hit when firing is destroyed with no effect on the target. This effect cannot be prevented or avoided." }
     },
     starKnights: {
-        tacticalCoordination: { name: "Tactical Coordination", description: "Star Knights convert one partial activation to a full activation. For example in a normal game instead of 2 full and 2 limited activations, Star Knights would receive 3 full and 1 limited activation. The conversion can only be used in a turn where at least 2 Star Knight units are being activated." },
+        priorityKill: { name: "Priority Kill", description: "If the first unit activated in a player turn attacks, it does so with +1 to hit / close combat."},
+        tacticalCoordination: { name: "Tactical Coordination - Army Special Order", description: "Take either 1 additional Limited Activation or convert 1 Limited Activation to Full Activation." },
         environmentSuit: { name: "Environment Suit", description: "Not affected by Dangerous Terrain." }
     }
 }
@@ -288,12 +289,12 @@ const PSIONIC_POWERS_LIST = {
     starKnights: {
         name: "Star Knight Psionic Abilities",
         powers: {
-            mentalFortress: { roll: 1, name: "Mental Fortress", description: "Until the end of the following enemy turn, the Psionic cannot engage or be engaged in Psionic Duels, nor targeted by Psionic Powers. Imperial Units within 9” are not affected by Terror: " + TRAITS.terror.description },
+            mentalFortress: { roll: 1, name: "Mental Fortress", description: "Until the end of the following enemy turn, the Psionic cannot engage or be engaged in Psionic Duels, nor targeted by Psionic Powers. Imperial Units within 9” are not affected by Terror." },
             ritesOfWar: { roll: 2, name: "Rites of War", description: `Target unit gains Terror (${TRAITS.terror.description}) and Agile (${TRAITS.agile.description}) until the end of the following enemy turn.` },
             flameSummon: { roll: 3, name: "Flame Summon", description: "Draw a straight line up to 9”. Any unit that the line passes through (friend or foe) is attacked with +1 Firepower, AT +0." },
             personalTeleport: { roll: 4, name: "Personal Teleport", description: "The Psionic can move to any location within 9”. Destination does not have to be visible." },
             psionicAugmentatio: { roll: 5, name: "Psionic Augmentation", description: `Until the end of the following enemy turn, the Psionic gains Damage Mitigation (${TRAITS.damageMitigation.description}) and Penetrating Damage (${TRAITS.penetratingDamage.description}).` },
-            mentalShock: { roll: 6, name: "Mental Shock", description: `Roll 2D6. If the roll exceeds the Cohesion of the target unit, it takes 2 points of Penetrating Damage (${TRAITS.penetratingDamage.description}).` }
+            mentalShock: { roll: 6, name: "Mental Shock", description: `Roll 2D6. If the roll exceeds the Cohesion of the target unit, it takes 2 points of Penetrating Damage (${TRAITS.penetratingDamage.description}). Psionics add their Psi level to their Cohesion but will take +1 damage.` }
         }
     }
 }
@@ -863,9 +864,9 @@ const starKnights = {
     psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, starKnights: PSIONIC_POWERS_LIST.starKnights },
     upgrades: {
         ...GENERIC_UPGRADES,
-        antiTankGrenades: { name: "Anti Tank Grenades", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Increase Assault Anti Tank by +1." },
+        antiTankGrenades: { name: "Shatter Grenades", keyword: SQUAD, statBonuses: { assault: { antiTank: 1 }, points: 1 }, description: "Increase Assault Anti Tank by +1." },
         stormRounds: { name: "Storm Rounds", keyword: SQUAD, statBonuses: { firepower: { firefight: 1, battle: 0, long: -1 }, points: 2 }, description: "Only available to units with Firepower at all three range bands. Modify existing Firepower by +1 / +0 / -1" }, //TODO: handle restriction
-        gravSuspendedWeapons: { name: "Grav Suspended Weapons", keyword: SQUAD, statBonuses: { move: 1, points: 2 }, description: "If Move is 4”, increase to 5”." },
+        gravSuspendedWeapons: { name: "Grav Suspended Weapons", keyword: SQUAD, statBonuses: { move: 1, points: 2 }, description: "Heavy Weapon Squads only. Increase move to 5”." }, //TODO: Make these available only for squads with name that starts with "Heavy Weapon Squad"
         fusionRifle: { name: "Fusion Rifle", keyword: SQUAD, statBonuses: { points: 3 }, description: "Add +1 to Anti Tank shooting within 9”." },
         honouredVeteran: { name: "Honoured Veteran", keyword: SQUAD, statBonuses: { assault: { modifier: 1 }, cohesion: 1, points: 3 }, description: "Increase Close Combat and Cohesion by +1." },
         multiWeapon: { name: "Multi-Weapon", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Each time the unit shoots it may use its standard fire option or fire with +0/+0/- Firepower and +0 Anti Tank factors." }, //TODO: Maybe add as another firepower element?
@@ -887,11 +888,11 @@ const starKnights = {
         heavyWeaponSquadRapidFire: { name: "Heavy Weapon Squad - Rapid Fire", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "3 figures with 2 heavy weapons", specialRules: [TRAITS.antiPersonnel, { name: "Split Fire", description: "May fire at two different targets. Each attack is conducted as +0 / +0 / +0 without Anti Personnel. Select both targets before rolling." }] },
         reconSquad: { name: "Recon Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.infiltration, TRAITS.specialist, { name: "Recon Armour", description: "Does not benefit from Environmental Suit rule." }] },
         reconSnipers: { name: "Recon Snipers", keyword: SQUAD, move: 5, firepower: [{ firefight: 0, battle: 1, long: 1, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.infiltration, TRAITS.specialist, TRAITS.sniping, { name: "Recon Armour", description: "Does not benefit from Environmental Suit rule." }] },
-        breachSquad: { name: "Breach Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 5, antiTank: 3 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
-        breachAssaultSquad: { name: "Breach Assault Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 6, antiTank: 4 }, cohesion: 9, points: 13, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
+        breachSquad: { name: "Breach Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 2, battle: 1, long: null, antiTank: 0 }], assault: { modifier: 5, antiTank: 3 }, cohesion: 9, points: 21, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
+        breachAssaultSquad: { name: "Breach Assault Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 6, antiTank: 4 }, cohesion: 9, points: 20, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.specialist] },
         officer: { name: "Officer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership] },
-        reciter: { name: "Reciter", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Litanies", description: "Knight units within 6” add +1 to close combat rolls." }] },
-        bannerBearer: { name: "Banner Bearer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Banner", description: "Imperial units that Regroup within 6” regain 1 additional point of Cohesion." }] },
+        reciter: { name: "Reciter", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Litanies", description: "Knight units within 6” add +1” to movement." }] },
+        bannerBearer: { name: "Banner Bearer", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Banner", description: "Imperial units within 6” inflict +1 damage in victorious close combat." }] },
         medicalSpecialist: { name: "Medical Specialist", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, { name: "Healer", description: "Take a Carry Out Action. One Imperial squad within 3” regains 1 point of Cohesion." }] },
         technicalSpecialist: { name: "Technical Specialist", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 15, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.repair] },
         psionicKnight: { name: "Psionic Knight", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 21, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 3, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.starKnights] },
@@ -918,18 +919,22 @@ const starKnights = {
     validator: [
         ...DEFAULT_VALIDATORS,
         {
-            description: "If all Vehicles selected are Unarmoured Vehicles and you do not select any Field Artillery, you may take as many Vehicles as you have Squads. Otherwise the total number of Vehicles and Field Artillery must be less than the number of Squads.",
+            description: "The total number of Vehicle and Field artillery units cannot exceed the number of Squads. A single Unarmoured Vehicle is not counted towards this limit.",
             validate: units => {
                 let squads = units.filter(unit => unit.stats.keyword === SQUAD);
-                let armoredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.armour != null);
+                let armouredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.armour != null);
                 let unarmouredVehicles = units.filter(unit => unit.stats.keyword === VEHICLE && unit.stats.cohesion != null);
                 let fieldArtillery = units.filter(unit => unit.stats.keyword === FIELD_ARTILLERY);
-                let vehiclesAndFieldArtillery = armoredVehicles.length + unarmouredVehicles.length + fieldArtillery.length;
+                let armoredVehiclesAndFieldArtillery = armouredVehicles.length + fieldArtillery.length;
+                let totalAmount = armoredVehiclesAndFieldArtillery + unarmouredVehicles.length;
 
-                if (unarmouredVehicles.length > 0 || fieldArtillery.length > 0) {
-                    return vehiclesAndFieldArtillery < squads.length;
+                if(totalAmount <= squads.length){
+                    return true;
                 }
-                return armoredVehicles.length <= squads.length;
+                if(totalAmount <= squads.length + 1 && unarmouredVehicles.length > 0){
+                    return true;
+                }
+                return false;
             }
         },
         {
