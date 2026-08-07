@@ -20,12 +20,12 @@ export const FIELD_ARTILLERY = { icon: '💥', order: 5 };
 
 //Vehicle damage tables
 const VEHICLE_DAMAGE = {
-    slowDown: { order: 1, name: "Slow Down", canBeAppliedMultipleTimes: true, description: "Speed is halved (rounding down)", halvesMovement: true},
-    firepowerReduced: { order: 2, name: "Firepower Reduced", statBonuses: { firepower: {firefight: -1, battle: -1, long: -1}}, canBeAppliedMultipleTimes: true, description: "All shooting is -1 to hit"},
-    armourBreech: { order: 3, name: "Armour Breech", canBeAppliedMultipleTimes: true, description: "Armour is reduced by 1 on ", affectsFacing: true},
-    immobilised: { order: 4, name: "Immobilised", description: "The vehicle is unable to move or turn. If the vehicle is Immobilised again, it is Knocked Out.", stopsMovement: true},
-    burning: { order: 5, name: "🔥 Burning",  canBeAppliedMultipleTimes: true, description: "The vehicle is immobilised. At the start of each game turn roll 1D6. On a 6 the vehicle suffers Catastrophic damage.", stopsMovement: true},
-    knockedOut: { order: 6, name: "💥 Knocked Out", description: "The vehicle ceases to function. Roll 1D6. On a 5-6, the vehicle suffers Catastrophic Damage."}
+    slowDown: { order: 1, name: "Slow Down", canBeAppliedMultipleTimes: true, description: "Speed is halved (rounding down)", halvesMovement: true },
+    firepowerReduced: { order: 2, name: "Firepower Reduced", statBonuses: { firepower: { firefight: -1, battle: -1, long: -1 } }, canBeAppliedMultipleTimes: true, description: "All shooting is -1 to hit" },
+    armourBreech: { order: 3, name: "Armour Breech", canBeAppliedMultipleTimes: true, description: "Armour is reduced by 1 on ", affectsFacing: true },
+    immobilised: { order: 4, name: "Immobilised", description: "The vehicle is unable to move or turn. If the vehicle is Immobilised again, it is Knocked Out.", stopsMovement: true },
+    burning: { order: 5, name: "🔥 Burning", canBeAppliedMultipleTimes: true, description: "The vehicle is immobilised. At the start of each game turn roll 1D6. On a 6 the vehicle suffers Catastrophic damage.", stopsMovement: true },
+    knockedOut: { order: 6, name: "💥 Knocked Out", description: "The vehicle ceases to function. Roll 1D6. On a 5-6, the vehicle suffers Catastrophic Damage." }
 }
 
 export const MINOR_VEHICLE_DAMAGE_TABLE = [
@@ -183,11 +183,16 @@ const ARMY_SPECIAL_RULES = {
     },
     imperialLegion: {
         holdTheGround: { name: "Hold the ground", description: "At the end of your turn, select one Legion unit that is in a building or fortification, on high ground or within 3” of a Scenario Objective. The selected unit recovers 1 lost point of Cohesion" },
-        platoonOrders: { name: "Platoon Orders - Army Special Order", description: "A Platoon order can affect up to three units that are all Infantry, all Field Artillery or all Vehicles. They must be within 6” of each other forming a chain or blob. The Platoon can either all take 1 Move Action (remaining within 6” of each other) OR One unit can fire. Each unit in the Platoon that could itself inflict damage on the target by firing adds +1 to the hit roll."}
+        platoonOrders: { name: "Platoon Orders - Army Special Order", description: "A Platoon order can affect up to three units that are all Infantry, all Field Artillery or all Vehicles. They must be within 6” of each other forming a chain or blob. The Platoon can either all take 1 Move Action (remaining within 6” of each other) OR One unit can fire. Each unit in the Platoon that could itself inflict damage on the target by firing adds +1 to the hit roll." }
     },
     killBots: {
         selfRepair: { name: "Self Repair", description: "At the end of your player Phase, select any one Kill Bot squad and restore up to 2 points of lost Cohesion. Kill Bots cannot regain Cohesion in any other way, including by taking the Regroup Action." },
         distortionField: { name: "Distortion Field", description: "Non Kill Bot units within 6” of 1 or more Kill Bot units suffer a -1 penalty to hit when firing. The penalty is not cumulative" }
+    },
+    spaceDwarves: {
+        fightToTheEnd: { name: "Fight to the End", description: "A Dwarf Infantry or Field Artillery unit that is destroyed in close combat inflicts 1 point of Damage to the enemy. If destroyed by a walker, inflict a +0 AT hit. This applies even if the unit normally does not have a close combat AT value." },
+        practicalMinded: { name: "Practical Minded", description: "Dwarf units can Carry Out as a free Action, if it allows them to secure an objective." },
+        dwarfPsionics: { name: "Dwarf Psionics", description: "Unlike many psionic abilities, Dwarf psionic abilities with a duration last until the end of the following friendly turn. A unit cannot be affected by two instances of the same ability at the same time. If targeted again, this would just prolong the duration, not double the effect." }
     },
     spaceElves: {
         elusive: { name: "Elusive", description: "When applying ranged attack damage to Elf infantry and cavalry, if the final attack damage exceeds 4 points, the unit suffers 4 points of damage instead." },
@@ -202,7 +207,7 @@ const ARMY_SPECIAL_RULES = {
         goblinMalfunction: { name: "Goblin Malfunction", description: "Orc Field artillery rolling a double 1 to hit when firing is destroyed with no effect on the target. This effect cannot be prevented or avoided." }
     },
     starKnights: {
-        priorityKill: { name: "Priority Kill", description: "If the first unit activated in a player turn attacks, it does so with +1 to hit / close combat."},
+        priorityKill: { name: "Priority Kill", description: "If the first unit activated in a player turn attacks, it does so with +1 to hit / close combat." },
         tacticalCoordination: { name: "Tactical Coordination - Army Special Order", description: "Take either 1 additional Limited Activation or convert 1 Limited Activation to Full Activation." },
         environmentSuit: { name: "Environment Suit", description: "Not affected by Dangerous Terrain." }
     }
@@ -262,6 +267,17 @@ const PSIONIC_POWERS_LIST = {
             displacement: { roll: 4, name: "Displacement", description: "Move the target unit (which may be the Psionic) 2D6”. The destination must be visible to the Psionic. On a double, the unit moved suffers 1 point of Penetrating Damage." },
             illuminateTarget: { roll: 5, name: "Illuminate target", description: "Until the end of the following enemy turn, all attacks against the target unit receive +1 to hit, +1 to Close Combat rolls and +1 to Anti Tank rolls." },
             roilingAssassin: { roll: 6, name: "Roiling Assassin", description: "Select a target Individual and roll 2D6. The target rolls 2D6. For each point the Psionic rolls higher, the target takes 1 point of damage." }
+        }
+    },
+    spaceDwarves: {
+        name: "Space Dwarf Psionic Abilities",
+        powers: {
+            establishStand: { roll: 1, name: "Establish Stand", description: "Until the end of the following friendly turn, the Psionic and one friendly unit within 6” receives Damage Mitigation." },
+            psionicInhibition: { roll: 2, name: "Psionic Inhibition", description: "Until the end of the following friendly turn, the target unit takes a -2 penalty to hit if it fires at the closest visible opposing target." },
+            forceBarrier: { roll: 3, name: "Force Barrier", description: "Until the end of the following friendly turn, the target unit cannot move closer to the Psionic under any circumstances. The target unit does not suffer Combat Shock." },
+            mentalWall: { roll: 4, name: "Mental Wall", description: "Until the end of the following friendly turn, the target unit suffers -1 to close combat rolls and does not inflict Combat Shock." },
+            rallyingCry: { roll: 5, name: "Rallying Cry", description: "The target unit regains 1 Cohesion and removes all Psionic effects currently on the unit." },
+            mindBunker: { roll: 6, name: "Mind Bunker", description: "Until the end of the following friendly turn, the Psionic cannot be targeted by Psionic Duels. If an enemy psionic targets any unit within 6” of the Psionic with a power, roll 1D6: On a 5-6 the ability fails with no effect." }
         }
     },
     spaceElves: {
@@ -504,7 +520,7 @@ const hellServants = {
         demonicKnights: { name: "Demonic Knights", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 9, points: 15, composition: "3 figures", specialRules: [TRAITS.demonic, { name: "Penetrating Damage (close combat only)", description: TRAITS.penetratingDamage.description }] },
         destroyerCult: { name: "Destroyer Cult", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: 2, antiTank: 2 }, cohesion: 10, points: 20, composition: "3 figures", specialRules: [TRAITS.damageMitigation, TRAITS.unique, TRAITS.ponderous, TRAITS.specialist] },
         beastSlaves: { name: "Beast Slaves", keyword: SQUAD, move: 5, assault: { modifier: 2, antiTank: 0 }, cohesion: 8, points: 7, composition: "6 figures", specialRules: [] },
-        houndPack: { name: "Hound Pack", keyword: SQUAD, move: 8, assault: { modifier: 2, antiTank: null }, cohesion: 7, points: 8, composition: "4 figures", specialRules: [TRAITS.agile, {name: "Dark Hunters", description: "+1 to close combat vs Cavalry."}] },
+        houndPack: { name: "Hound Pack", keyword: SQUAD, move: 8, assault: { modifier: 2, antiTank: null }, cohesion: 7, points: 8, composition: "4 figures", specialRules: [TRAITS.agile, { name: "Dark Hunters", description: "+1 to close combat vs Cavalry." }] },
         hellDwarves: { name: "Hell Dwarves", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 2, long: 1, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 15, composition: "4 figures with 2 heavy weapons", specialRules: [{ name: "Steady Advance", description: "If receiving a Limited Activation, the unit can Move before performing a Carry Out Action" }] },
         hellLord: { name: "Hell Lord", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 5, antiTank: 1 }, cohesion: 10, points: 19, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.leadership, TRAITS.unique] },
         hellChampion: { name: "Hell Champion", keyword: INDIVIDUAL, move: 6, firepower: [{ firefight: 1, battle: null, long: null, antiTank: null }], assault: { modifier: 4, antiTank: 1 }, cohesion: 9, points: 16, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero] },
@@ -669,6 +685,52 @@ const killBots = {
                 let excessIndividuals = individuals.length - allowedSupportOrIndividuals;
                 excessIndividuals = excessIndividuals < 0 ? 0 : excessIndividuals;
                 return excessSupport + excessIndividuals > extraSupportOrIndividuals ? false : true;
+            }
+        }
+    ]
+};
+const spaceDwarves = {
+    name: "Space Dwarves",
+    armySpecialRules: { ...ARMY_SPECIAL_RULES.spaceDwarves },
+    psionicPowers: { spaceDwarves: PSIONIC_POWERS_LIST.spaceDwarves },
+    upgrades: {
+        ...GENERIC_UPGRADES,
+        meleeOperative: { name: "Melee Operative", keyword: SQUAD, statBonuses: { points: 2 }, description: "Reroll 1s in close combat and increase close combat Anti Tank to +1 if currently lower." }, //TODO: Set stat to X if lower
+        fragLaunchers: { name: "Frag Launchers", keyword: SQUAD, statBonuses: { points: 2 }, description: `Gain Anti Personnel within 9”: ${TRAITS.antiPersonnel.description}` },
+        scarredOnes: { name: "Scarred Ones", keyword: SQUAD, statBonuses: { cohesion: 1, points: 1 }, description: "Add +1 to Cohesion." },
+        fusionRifle: { name: "Fusion Rifle", keyword: SQUAD, statBonuses: { points: 2 }, description: "When firing at 9” or closer, add +1 to Anti Tank." },
+        ancestralIcon: { name: "Ancestral Icon", keyword: SQUAD, statBonuses: { points: 3 }, description: "Squad gains Damage Mitigation: " + TRAITS.damageMitigation.description },
+        techWeapon: { name: "Tech Weapon", keyword: INDIVIDUAL, statBonuses: { points: 1 }, description: "Add +1 to hit rolls within 9”." },
+        forceScreen: { name: "Force Screen", keyword: INDIVIDUAL, statBonuses: { points: 4 }, description: "Gain the Damage Mitigation trait: " + TRAITS.damageMitigation.description },
+        masterAxe: { name: "Master Axe", keyword: INDIVIDUAL, statBonuses: { assault:{antiTank:3}, points: 1 }, description: "Assault Anti-Tank is increased to +3" },
+        gravGun: { name: "Grav Gun", keyword: INDIVIDUAL, statBonuses: { points: 5 }, description: "Can fire at Armoured targets with +0 / +0 / - Firepower. The attack ignores Armour. Instead roll 2D6 for each hit: A 7-9 inflicts Minor Damage. A 10-12 inflicts Major Damage." },
+        fragBombs: { name: "Frag Bombs", keyword: INDIVIDUAL, statBonuses: { points: 2 }, description: "Gains the Bypass Cover trait: " + TRAITS.bypassCover.description },
+        tankHunter: { name: "Tank Hunter", keyword: VEHICLE, statBonuses: { fireFight: { antiTank: 1 }, points: 3 }, description: `Gain +1 to Anti Tank. Gain Forward Firing (${TRAITS.forwardFiring.description}). Not available if already Forward Firing.` }, //TODO: Handle limiting units with forward firing trait
+        suppressorGuns: { name: "Suppressor Guns", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Enemy Infantry cannot return fire within 9”." },
+        skimmerUpgrade: { name: "Skimmer Upgrade", keyword: VEHICLE, statBonuses: { points: 3 }, description: "Mobility type changes from Tracked/Wheeled to Hover." } //TODO: Handle changing of traits with upgrades
+    },
+    units: {
+        combatSquad: { name: "Combat Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 13, composition: "4 figures with 1 heavy weapon", specialRules: [] },
+        lightInfantrySquad: { name: "Light Infantry Squad", keyword: SQUAD, move: 5, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 9, points: 13, composition: "4 figures with 1 heavy weapon", specialRules: [TRAITS.infiltration] },
+        attackSquad: { name: "Attack Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 0, long: 0, antiTank: 0 }], assault: { modifier: 3, antiTank: 1 }, cohesion: 10, points: 12, composition: "4 figures", specialRules: [] },
+        stormEngineers: { name: "Storm Engineers", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 2, antiTank: 2 }, cohesion: 10, points: 12, composition: "4 figures", specialRules: [TRAITS.bypassCover] },
+        fireSquad: { name: "Fire Squad", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 1 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 15, composition: "4 figures with heavy weapons", specialRules: [] },
+        fireSquadRapidFireCannon: { name: "Fire Squad - Rapid Fire Cannon", keyword: SQUAD, move: 4, firepower: [{ firefight: 1, battle: 1, long: 1, antiTank: 0 }], assault: { modifier: 2, antiTank: 0 }, cohesion: 10, points: 17, composition: "4 figures with heavy weapons", specialRules: [] }, //NOTE: Handles rapid fire cannon option of fire squad
+        sandRiders: { name: "Sand Riders", keyword: SQUAD, move: 6, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 3, antiTank: 0 }, cohesion: 11, points: 14, composition: "4 mounted figures", specialRules: [TRAITS.cavalry] },
+        heavyWeaponsTeam: { name: "Heavy Weapons Team", keyword: SQUAD, move: 3, firepower: [{ firefight: 0, battle: 2, long: 1, antiTank: 2 }], assault: { modifier: 0, antiTank: 0 }, cohesion: 10, points: 16, composition: "2 figures and single gun", specialRules: [] },
+        leader: { name: "bar", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero] },
+        psyker: { name: "bar", keyword: INDIVIDUAL, move: 5, firepower: [{ firefight: 0, battle: 0, long: null, antiTank: 0 }], assault: { modifier: 1, antiTank: 0 }, cohesion: 9, points: 20, composition: "1 figure", specialRules: [TRAITS.individual, TRAITS.hero, TRAITS.psionic], psionicLevel: 1, psionicLists: [PSIONIC_POWERS_LIST.generic, PSIONIC_POWERS_LIST.foo] },
+        tank: { name: "baz", keyword: VEHICLE, move: 8, firepower: [{ type: ANTI_INFANTRY, firefight: 2, battle: 2, long: 2, antiTank: null }, { type: ANTI_TANK, firefight: 1, battle: 1, long: 1, antiTank: 2 }], armour: { front: 11, side: 10, rear: 8 }, points: 25, composition: "1 vehicle", specialRules: [TRAITS.tracked, TRAITS.armoured] }
+    },
+    validator: [
+        ...DEFAULT_VALIDATORS,
+        {
+            description: "The number of Individuals taken must be less than the number of Squads.",
+            validate: units => {
+                let individuals = units.filter(unit => unit.stats.keyword === INDIVIDUAL);
+                let squads = units.filter(unit => unit.stats.keyword === SQUAD);
+
+                return individuals.length < squads.length;
             }
         }
     ]
@@ -928,10 +990,10 @@ const starKnights = {
                 let armoredVehiclesAndFieldArtillery = armouredVehicles.length + fieldArtillery.length;
                 let totalAmount = armoredVehiclesAndFieldArtillery + unarmouredVehicles.length;
 
-                if(totalAmount <= squads.length){
+                if (totalAmount <= squads.length) {
                     return true;
                 }
-                if(totalAmount <= squads.length + 1 && unarmouredVehicles.length > 0){
+                if (totalAmount <= squads.length + 1 && unarmouredVehicles.length > 0) {
                     return true;
                 }
                 return false;
