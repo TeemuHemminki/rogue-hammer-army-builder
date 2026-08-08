@@ -692,7 +692,7 @@ const killBots = {
 const spaceDwarves = {
     name: "Space Dwarves (Grimdark)",
     armySpecialRules: { ...ARMY_SPECIAL_RULES.spaceDwarves },
-    psionicPowers: { spaceDwarves: PSIONIC_POWERS_LIST.spaceDwarves },
+    psionicPowers: { generic: PSIONIC_POWERS_LIST.generic, spaceDwarves: PSIONIC_POWERS_LIST.spaceDwarves },
     upgrades: {
         ...GENERIC_UPGRADES,
         meleeOperative: { name: "Melee Operative", keyword: SQUAD, statBonuses: { points: 2 }, description: "Reroll 1s in close combat and increase close combat Anti Tank to +1 if currently lower." }, //TODO: Set stat to X if lower
